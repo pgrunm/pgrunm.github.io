@@ -3,4 +3,4 @@ languageCode = "en-us"
 title = "My New Hugo Site"
 
 # Name of the theme.
-theme = "academia-hugo"
+theme = "academia"

@@ -52,7 +52,7 @@ pygmentscodefencesguesssyntax = true
     name = "Telegram"
     icon = "fab fa-telegram-plane fa-2x"
     weight = 3
-    url = "1234567"
+    url = "https://t.me/Pascal982"
 [[params.social]]
     name = "Xing"
     icon = "fab fa-xing  fa-2x"

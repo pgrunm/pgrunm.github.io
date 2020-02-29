@@ -1,6 +1,6 @@
 baseURL = "http://example.org/"
 languageCode = "en-us"
-title = "Pascal Gru"
+title = "Pascal Grundmeier"
 
 # Name of the theme.
 # Documentation of the theme: https://github.com/luizdepra/hugo-coder/wiki
@@ -15,12 +15,10 @@ pygmentsstyle = "bw"
 pygmentscodefences = true
 pygmentscodefencesguesssyntax = true
 
-disqusShortname = "yourdiscussshortname"
-
 [params]
     author = "Pascal Grundmeier"
-    info = "System Engineer"
-    description = "Pascal Gru's personal website"
+    info = "System Engineer Windows & Linux"
+    description = "Pascal Grundmeiers's personal website"
     keywords = "blog,devops engineer, site reliability engineer"
     avatarurl = "images/avatar.jpg"
 
@@ -28,6 +26,8 @@ disqusShortname = "yourdiscussshortname"
     favicon_16 = "/img/favicon-16x16.png"
 
     footercontent = "Welcome to my website."
+
+    colorscheme = "auto"
 
     hidecredits = true
     hidecopyright = true
@@ -37,22 +37,34 @@ disqusShortname = "yourdiscussshortname"
     math = true
     custom_css = ["css/custom.css"]
 
-# Social links
+# Social links, see docs here: https://fontawesome.com/icons?d=gallery&m=free
 [[params.social]]
     name = "Github"
     icon = "fab fa-github fa-2x"
     weight = 1
     url = "https://github.com/pgrunm/"
 [[params.social]]
-    name = "Gitlab"
-    icon = "fab fa-gitlab fa-2x"
+    name = "E-Mail"
+    icon = "fa fa-envelope fa-2x"
     weight = 2
-    url = "https://gitlab.com/johndoe/"
+    url = "mailto:test@example.com"
 [[params.social]]
-    name = "Twitter"
-    icon = "fab fa-twitter fa-2x"
+    name = "Telegram"
+    icon = "fab fa-telegram-plane fa-2x"
     weight = 3
-    url = "https://twitter.com/johndoe/"
+    url = "1234567"
+[[params.social]]
+    name = "Xing"
+    icon = "fab fa-xing  fa-2x"
+    weight = 4
+    url = "https://xing.com/pascal.grundmeier/"
+[[params.social]]
+    name = "RSS"
+    icon = "fas fa-rss"
+    weight = 5
+    url = "https://pgrunm.github.io/index.xml"
+    rel = "alternate"
+    type = "application/rss+xml"
 
 # Menu links
 [[menu.main]]
@@ -67,3 +79,7 @@ disqusShortname = "yourdiscussshortname"
     name = "About"
     weight = 3
     url = "/about/"
+[[menu.main]]
+    name = "Contact"
+    weight = 4
+    url = "contact/"

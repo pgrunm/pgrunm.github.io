@@ -20,7 +20,7 @@ pygmentscodefencesguesssyntax = true
     info = "System Engineer"
     description = "Pascal Grundmeiers's personal website"
     keywords = "blog,devops engineer, site reliability engineer"
-    avatarurl = "images/avatar.jpg"
+    avatarurl = "images/avatar.png"
 
     favicon_32 = "/img/favicon-32x32.png"
     favicon_16 = "/img/favicon-16x16.png"

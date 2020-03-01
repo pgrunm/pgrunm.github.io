@@ -57,7 +57,7 @@ pygmentscodefencesguesssyntax = true
     name = "Xing"
     icon = "fab fa-xing  fa-2x"
     weight = 4
-    url = "https://xing.com/pascal.grundmeier/"
+    url = "https://www.xing.com/profile/Pascal_Grundmeier"
 [[params.social]]
     name = "RSS"
     icon = "fas fa-rss"

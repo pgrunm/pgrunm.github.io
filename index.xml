@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pascal Grundmeier</title>
+    <link>http://example.org/</link>
+    <description>Recent content on Pascal Grundmeier</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 01 Mar 2020 14:31:31 +0100</lastBuildDate>
+    
+	<atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Building my new blog: Part 1</title>
+      <link>http://example.org/posts/building_blog_part1/</link>
+      <pubDate>Sun, 01 Mar 2020 14:31:31 +0100</pubDate>
+      
+      <guid>http://example.org/posts/building_blog_part1/</guid>
+      <description>I wanted to create a blog for a long time already, but because of university I had not much spare time. Finally I found some time to create my blog and this post will contain some background information about the software I&amp;rsquo;m using, where it&amp;rsquo;s hosted etc. Enjoy my first post!
+What to use The first question I asked myself was: What software I&amp;rsquo;m going to use for my blog? Maybe Wordpress or Joomla for example?</description>
+    </item>
+    
+    <item>
+      <title>Contact</title>
+      <link>http://example.org/contact/</link>
+      <pubDate>Sun, 01 Mar 2020 14:31:31 +0100</pubDate>
+      
+      <guid>http://example.org/contact/</guid>
+      <description>Did you find an issue, want to contact me or just want to chat? Feel free to! You can find many ways to contact me on the front page.</description>
+    </item>
+    
+    <item>
+      <title>About me</title>
+      <link>http://example.org/about/</link>
+      <pubDate>Sun, 01 Mar 2020 14:30:43 +0100</pubDate>
+      
+      <guid>http://example.org/about/</guid>
+      <description>Hello, my name is Pascal. I&amp;rsquo;m working as a system engineer in Wolfsburg, Lower Saxony and I&amp;rsquo;m 26 years old. I&amp;rsquo;m currently studying Business Informatics in my 6th semester so I&amp;rsquo;m almost done.
+I&amp;rsquo;m reading a lot about of DevOps, Site Reliability Engineering and also my newest point of interest IT architecture. The stuff I read about in books or the internet I&amp;rsquo;m usually applying in private projets or at work.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -17,7 +17,7 @@ pygmentscodefencesguesssyntax = true
 
 [params]
     author = "Pascal Grundmeier"
-    info = "System Engineer Windows & Linux"
+    info = "System Engineer"
     description = "Pascal Grundmeiers's personal website"
     keywords = "blog,devops engineer, site reliability engineer"
     avatarurl = "images/avatar.jpg"
@@ -25,7 +25,7 @@ pygmentscodefencesguesssyntax = true
     favicon_32 = "/img/favicon-32x32.png"
     favicon_16 = "/img/favicon-16x16.png"
 
-    footercontent = "Welcome to my website."
+    footercontent = "Welcome to my website. Feel free to contact me or read one of my posts in my blog."
 
     colorscheme = "auto"
 
@@ -82,4 +82,4 @@ pygmentscodefencesguesssyntax = true
 [[menu.main]]
     name = "Contact"
     weight = 4
-    url = "contact/"
+    url = "/contact/"

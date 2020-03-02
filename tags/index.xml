@@ -1,14 +1,51 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on Pascal Grundmeier</title>
+    <title>Tags on System Engineering Blog</title>
     <link>https://pgrunm.github.io/tags/</link>
-    <description>Recent content in Tags on Pascal Grundmeier</description>
+    <description>Recent content in Tags on System Engineering Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <lastBuildDate>Thu, 13 Feb 2020 14:31:31 +0100</lastBuildDate>
     
 	<atom:link href="https://pgrunm.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>bash</title>
+      <link>https://pgrunm.github.io/tags/bash/</link>
+      <pubDate>Thu, 13 Feb 2020 14:31:31 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/bash/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>continuous deployment</title>
+      <link>https://pgrunm.github.io/tags/continuous-deployment/</link>
+      <pubDate>Thu, 13 Feb 2020 14:31:31 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/continuous-deployment/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>git</title>
+      <link>https://pgrunm.github.io/tags/git/</link>
+      <pubDate>Thu, 13 Feb 2020 14:31:31 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/git/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>submodule</title>
+      <link>https://pgrunm.github.io/tags/submodule/</link>
+      <pubDate>Thu, 13 Feb 2020 14:31:31 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/submodule/</guid>
+      <description></description>
+    </item>
     
   </channel>
 </rss>

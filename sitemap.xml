@@ -3,11 +3,6 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://pgrunm.github.io/posts/building_blog_part1/</loc>
-    <lastmod>2020-03-01T14:31:31+01:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://pgrunm.github.io/contact/</loc>
     <lastmod>2020-03-01T14:31:31+01:00</lastmod>
   </url>
@@ -18,21 +13,52 @@
   </url>
   
   <url>
-    <loc>https://pgrunm.github.io/posts/</loc>
-    <lastmod>2020-03-01T14:31:31+01:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://pgrunm.github.io/about/</loc>
     <lastmod>2020-03-01T14:30:43+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://pgrunm.github.io/categories/</loc>
+    <loc>https://pgrunm.github.io/tags/bash/</loc>
+    <lastmod>2020-02-13T14:31:31+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/posts/building_blog_part2/</loc>
+    <lastmod>2020-02-13T14:31:31+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/tags/continuous-deployment/</loc>
+    <lastmod>2020-02-13T14:31:31+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/tags/git/</loc>
+    <lastmod>2020-02-13T14:31:31+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/posts/</loc>
+    <lastmod>2020-02-13T14:31:31+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/tags/submodule/</loc>
+    <lastmod>2020-02-13T14:31:31+01:00</lastmod>
   </url>
   
   <url>
     <loc>https://pgrunm.github.io/tags/</loc>
+    <lastmod>2020-02-13T14:31:31+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/posts/building_blog_part1/</loc>
+    <lastmod>2020-02-01T14:31:31+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/categories/</loc>
   </url>
   
 </urlset>

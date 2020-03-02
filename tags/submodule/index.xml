@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on System Engineering Blog</title>
-    <link>https://pgrunm.github.io/posts/</link>
-    <description>Recent content in Posts on System Engineering Blog</description>
+    <title>submodule on System Engineering Blog</title>
+    <link>https://pgrunm.github.io/tags/submodule/</link>
+    <description>Recent content in submodule on System Engineering Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Thu, 13 Feb 2020 14:31:31 +0100</lastBuildDate>
     
-	<atom:link href="https://pgrunm.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://pgrunm.github.io/tags/submodule/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -19,16 +19,6 @@
       <guid>https://pgrunm.github.io/posts/building_blog_part2/</guid>
       <description>In the last post I wrote about my considerations about what software to use for my blog, where to host it and how to set it up. This post contains some more techinical details like the git structure and the deployment process. So then let&amp;rsquo;s dive in.
 The git structure The hugo projects mentions in their documentation to use a git submodule for the theme. Git explains that you can use this feature to integrate another project into your repository while still getting the latest commits from the other repo.</description>
-    </item>
-    
-    <item>
-      <title>Building my new blog: Part 1</title>
-      <link>https://pgrunm.github.io/posts/building_blog_part1/</link>
-      <pubDate>Sat, 01 Feb 2020 14:31:31 +0100</pubDate>
-      
-      <guid>https://pgrunm.github.io/posts/building_blog_part1/</guid>
-      <description>I wanted to create a blog for a long time already, but because of university I had not much spare time. Finally I found some time to create my blog and this post will contain some background information about the software I&amp;rsquo;m using, where it&amp;rsquo;s hosted etc. Enjoy my first post!
-What to use The first question I asked myself was: What software I&amp;rsquo;m going to use for my blog? Maybe Wordpress or Joomla for example?</description>
     </item>
     
   </channel>

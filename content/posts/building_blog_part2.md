@@ -1,7 +1,7 @@
 ---
 title: "Building my new blog: Part 2"
 date: 2020-02-13T14:31:31+01:00
-draft: true
+draft: false
 tags: [git, submodule, continuous deployment, bash]
 ---
 

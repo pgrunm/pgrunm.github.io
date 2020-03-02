@@ -11,10 +11,6 @@ defaultcontentlanguage = "en"
 paginate = 20
 canonifyurls = true
 
-pygmentsstyle = "bw"
-pygmentscodefences = true
-pygmentscodefencesguesssyntax = true
-
 [params]
     author = "Pascal Grundmeier"
     info = "System Engineer"

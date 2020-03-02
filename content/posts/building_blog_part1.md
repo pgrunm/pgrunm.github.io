@@ -1,6 +1,6 @@
 ---
 title: "Building my new blog: Part 1"
-date: 2020-03-01T14:31:31+01:00
+date: 2020-02-01T14:31:31+01:00
 draft: false
 ---
 

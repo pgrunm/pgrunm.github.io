@@ -1,6 +1,6 @@
 baseURL = "https://pgrunm.github.io/"
 languageCode = "en-us"
-title = "Pascal Grundmeier"
+title = "System Engineering Blog"
 
 # Name of the theme.
 # Documentation of the theme: https://github.com/luizdepra/hugo-coder/wiki
@@ -83,3 +83,7 @@ pygmentscodefencesguesssyntax = true
     name = "Contact"
     weight = 4
     url = "/contact/"
+[[menu.main]]
+    name = "RSS"
+    weight = 5
+    url = "https://pgrunm.github.io/index.xml"

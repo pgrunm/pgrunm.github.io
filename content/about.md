@@ -15,7 +15,7 @@ I'm reading a lot about of DevOps, Site Reliability Engineering and also my newe
 - Knowledge with continuous integration and continuous deployment (i. e. with Jenkins and Ansible or Powershell DSC).
 - Monitoring systems and services with Icinga 2 or Prometheus.
 - Docker and K8s.
-- Amazon Web Services knowledge (i. e. ELB, EC2 or AWS Lambda).
+- Amazon Web Services knowledge (i. e. ELB, EC2, RDS, ElastiCache or AWS Lambda).
 - I'm also TÜV certified IT Architecture and Technology Professional.
 
 ## Projects

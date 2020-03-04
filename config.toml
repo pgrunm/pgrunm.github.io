@@ -82,4 +82,4 @@ canonifyurls = true
 [[menu.main]]
     name = "RSS"
     weight = 5
-    url = "https://pgrunm.github.io/index.xml"
+    url = "/index.xml"

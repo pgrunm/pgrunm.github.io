@@ -583,7 +583,7 @@ As database load can increase the more user you have, caching is a good strategy
 
 As you can see in the table above not only average response time decreased but also the number of failed requests per second decreased. So the cache makes it a little bit better but in my opinion there is still air upward.
 
-## Scaling out with a load balancer and multiple processes
+### Scaling out with a load balancer and multiple processes
 
 As you saw in the last table I tried the best to increase the load the example application could handle. As the three tier architecture's performance is limited, we may need to scale out a little bit. To do this I added an Elastic Loadbalancer to distribute the load about different processes. Actually I cheated a little bit, because I just started several instances of the same program, where each is listening to a different port.
 
@@ -621,7 +621,7 @@ This leads us to the performance results I measured for this architecture:
 
 Not only the number of answered requests increased also number of failures and the average response went down. There were no failures anymore. As you can see scaling out is a very effective strategy to increase the performance of your services.
 
-## Scaling it to the maximum with serverless functions
+### Scaling it to the maximum with serverless functions
 
 Now I wanted to scale out my little application to the limit with serverless functions and AWS lambda. [Lambda](https://aws.amazon.com/lambda/features/) enables you to run just the code you need by passing it to AWS. In my case I used Lambda with an API gateway where you would just call an url and this would trigger the Lambda function.
 

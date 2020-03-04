@@ -1,5 +1,5 @@
 ---
-draft: true
+draft: false
 date: 2020-02-26T19:33:10+01:00
 title: "Scaling expriments with different AWS services"
 description: "I tested out the scaling abilities of different AWS services by creating a dummy application and stress tested them with Locust."

@@ -56,4 +56,3 @@ git push origin master
 ```
 
 So as soon as I run this bash script my latest changes are directly live on github and so also on the website. Pretty simple isn't it? This enables me to continously update my blog just by running a simple shell script.
-

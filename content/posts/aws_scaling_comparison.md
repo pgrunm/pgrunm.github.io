@@ -37,7 +37,7 @@ class WebsiteUser(HttpLocust):
     wait_time = between(5.0, 9.0)
 ```
 
-The Python script handles the logic which url to call and how long to wait. The following Powershell snippet runs Locust to call the web service.
+The Python script handles the logic which url to call and how long to wait. The following Powershell snippet runs Locust to call the web service and create the load.
 
 ```Powershell
 param(
@@ -74,3 +74,28 @@ foreach ($users in $numberOfUsersToSimulate) {
 }
 
 ```
+
+This is how I created the load on my service.
+
+## Testing different architectures
+
+### The three tier architecture
+
+At the beginning I started with the most basic and well known three tier architecture. This architecture contains the client (a browser), a webserver and a database. As I created this project in Go I just had to use Go's builtin webserver to create a simple webserver which would serve requests.
+
+As this is a clound only project the webserver is located on a AWS EC2 micro t.3 instance in Frankfurt. For the database I used an AWS RDS MariaDB instance which I prefer over MySQL. In the following code snippet you can see the internals of this service: everytime the service receives a requests it querys the database and returns the results.
+<!-- Hier Quelltext einfügen -->
+
+This is a pretty basic setup which only took one or two hours to setup which is a real advantadge to me. On the opposite side this setup isn't very scalable except in a vertical direction.
+
+When I stressed the service with Locust a little bit the performance at the start was fine, but in the end the webserver wasn't able to handle the load at all. The error rate went up and requests were not served or had to wait for a long time to get an answer.
+
+<!-- Hier Messwerte einfügen -->
+
+The more the load increases the more the performance goes down. To mitigate this I implemented a simple cache.
+
+### Implementing a caching layer
+
+AWS offers the Elasticache service to increase the performance applications by speeding up database querys for example. Instead of calling the database directly you first look inside the cache, if there is an entry for your request then it's directly answered from the cache. Otherwise you still need to call the database.
+
+It can be pretty effective to use a cache as this reduces the load on your database and you may can scale down your RDS database instance which reduces your running costs.

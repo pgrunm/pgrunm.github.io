@@ -597,7 +597,7 @@ This enables us to spread the load over 5 different instances of the same servic
 
 ```Go
 func main() {
-	// Port flag
+    // Port flag
 	portPtr := flag.Int("port", 10000, "Port for the webserver to start")
 	flag.Parse()
 
@@ -621,4 +621,178 @@ This leads us to the performance results I measured for this architecture:
 
 Not only the number of answered requests increased also number of failures and the average response went down. There were no failures anymore. As you can see scaling out is a very effective strategy to increase the performance of your services.
 
-<!-- ## Scaling it to the maximum with serverless functions -->
+## Scaling it to the maximum with serverless functions
+
+Now I wanted to scale out my little application to the limit with serverless functions and AWS lambda. [Lambda](https://aws.amazon.com/lambda/features/) enables you to run just the code you need by passing it to AWS. In my case I used Lambda with an API gateway where you would just call an url and this would trigger the Lambda function.
+
+The architecture changed like shown in this diagram:
+<!-- Hier Bild zur Architektur: ELB einfügen -->
+![This is an image](/images/lambda.png "Visualization of the elastic load balancer architecture")
+
+The length of the source code decreased heavily and looks now like this:
+
+```Go
+package main
+
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"regexp"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/bradfitz/gomemcache/memcache"
+	_ "github.com/go-sql-driver/mysql"
+)
+
+var (
+	db  *sql.DB
+	err error
+
+	// Memcached variable
+	mc = *memcache.New("hausarbeit-eb-memcached.dldis0.cfg.euc1.cache.amazonaws.com:11211")
+)
+
+// Customer - struct for customer data
+type Customer struct {
+	ID        int    `json:"Id"`
+	Surname   string `json:"Surname"`
+	Givenname string `json:"Givenname"`
+}
+
+// Readings - struct for read data
+type Readings struct {
+	MeasureID    int    `json:"MeasureID"`
+	MeasureDate  string `json:"MeasureDate"`
+	MeasureValue int    `json:"MeasureValue"`
+}
+
+type myReadings struct {
+	Measures []Readings
+}
+
+func (reading *myReadings) AddItem(item Readings) {
+	reading.Measures = append(reading.Measures, item)
+}
+
+func clientError(status int) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: status,
+		Body:       http.StatusText(status),
+	}, nil
+}
+
+func returnCustomerData(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	// ID may only contain numbers
+	var idRegExp = regexp.MustCompile(`[0-9]`)
+
+	// Parse the id from the query string
+	ID := req.QueryStringParameters["id"]
+
+	// Check if the provided ID is valid
+	if !idRegExp.MatchString(ID) {
+		return clientError(http.StatusBadRequest)
+	}
+	key := fmt.Sprintf("customerReadings_id_%s", ID)
+
+	it, memErr := mc.Get(key)
+	if memErr != nil {
+		fmt.Printf("No data for customer id %s in memcached: %s", ID, memErr)
+
+		// Create a db connection
+		initSetup()
+
+		// Prepare statement for reading data
+		stmtOut, dbErr := db.Prepare("SELECT Measure_ID, Measure_Date, Value FROM Readings WHERE Customers_ID_FK = ?;")
+		if dbErr != nil {
+			fmt.Println("Error while creating the sql statement")
+		}
+		defer stmtOut.Close()
+
+		// Query the customer id store it in customerdata
+		rows, dbErr := stmtOut.Query(ID)
+		defer rows.Close()
+
+		customReadingsList := myReadings{}
+		var customerReadings Readings
+
+		if dbErr != nil {
+			fmt.Println("unable to query user data", ID, dbErr)
+		} else {
+			for rows.Next() {
+
+				err := rows.Scan(&customerReadings.MeasureID, &customerReadings.MeasureDate, &customerReadings.MeasureValue)
+				if err != nil {
+					log.Fatal(err)
+				}
+				customReadingsList.AddItem(customerReadings)
+			}
+			json, err := json.Marshal(customReadingsList)
+			if err != nil {
+				return events.APIGatewayProxyResponse{
+					StatusCode: http.StatusOK,
+					Body:       string(json),
+				}, nil
+			}
+		}
+	}
+
+	// Return the events and a http 200 code.
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       string(it.Value),
+	}, nil
+
+}
+
+func initSetup() {
+
+	db, err = sql.Open("mysql", "admin:admin@tcp(123.4.5.6)/example")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err.Error())
+	} else {
+		fmt.Println("DB connection established!")
+	}
+
+}
+
+func main() {
+	// Start the Lambda Handler
+	lambda.Start(returnCustomerData)
+}
+
+```
+
+As you can see I'm now parsing the id which is submitted as parameter with a regular expression. If it's valid the programm tries to get the data from the cache. If there is no data inside the cache it queries the database.
+
+Now finally the results fo the lambda performance tests:
+<!-- Table with Lambda data -->
+| Number of users | # requests | # failures | Median responsetime | Average response time | Requests/s | Requests Failed/s |
+| --------------- | ---------- | ---------- | ------------------- | --------------------- | ---------- | ----------------- |
+| 50              | 818        | 0          | 27                  | 31                    | 4,56       | 0                 |
+| 100             | 1652       | 0          | 27                  | 31                    | 9,2        | 0                 |
+| 200             | 3273       | 0          | 27                  | 31                    | 18,2       | 0                 |
+| 400             | 6504       | 0          | 26                  | 31                    | 36,14      | 0                 |
+| 800             | 12701      | 0          | 27                  | 33                    | 70,41      | 0                 |
+| 1500            | 22898      | 0          | 27                  | 36                    | 126,19     | 0                 |
+
+Like in the previous table there are no failures at all. The number of responses is also almost the same. The average response time increased a little bit in comparison with the previous architecture.
+
+## Summary
+
+In the end I can say it's the best to use an Elastic Load Balancer to be able to distribute the load across different nodes or at least different ports on the same node. Using an ELB is a good idea, because you don't have to change the endpoint your users are calling. If there would be no ELB you probably would have to move the dns name of your endpoint (like **www**.example.org to an ELB).
+
+The ELB and AWS Lambda architecture are almost even up. But if it's about scalability we have to take into account that the ELB architecture is still running on only one EC2 instance. This means the machine's capacity isn't endless and at some point you can't scale this architecture anymore.
+
+The Lambda architecture instead scales automatically as load increases. On the other hand the Lambda architecture is harder to set up and to debug. But you'll get an almost infinitely scalable piece of architecture from this. It's up to you to decide what fits better.
+
+I hope you enjoyed my article, feel free to contact me if you have any feedback or suggestions.

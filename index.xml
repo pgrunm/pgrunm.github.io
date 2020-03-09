@@ -6,28 +6,19 @@
     <description>Recent content on System Engineering Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 01 Mar 2020 14:31:31 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 01 Feb 2020 14:31:31 +0100</lastBuildDate>
     
 	<atom:link href="https://pgrunm.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Contact</title>
-      <link>https://pgrunm.github.io/contact/</link>
-      <pubDate>Sun, 01 Mar 2020 14:31:31 +0100</pubDate>
+      <title>Scaling expriments with different AWS services</title>
+      <link>https://pgrunm.github.io/posts/aws_scaling_comparison/</link>
+      <pubDate>Wed, 26 Feb 2020 19:33:10 +0100</pubDate>
       
-      <guid>https://pgrunm.github.io/contact/</guid>
-      <description>Did you find an issue, want to contact me or just want to chat? Feel free to! You can find many ways to contact me on the front page.</description>
-    </item>
-    
-    <item>
-      <title>About me</title>
-      <link>https://pgrunm.github.io/about/</link>
-      <pubDate>Sun, 01 Mar 2020 14:30:43 +0100</pubDate>
-      
-      <guid>https://pgrunm.github.io/about/</guid>
-      <description>Hello, my name is Pascal. I&amp;rsquo;m working as a system engineer in Wolfsburg, Lower Saxony and I&amp;rsquo;m 26 years old. I&amp;rsquo;m currently studying Business Informatics in my 6th semester so I&amp;rsquo;m almost done.
-I&amp;rsquo;m reading a lot about of DevOps, Site Reliability Engineering and also my newest point of interest IT architecture. The stuff I read about in books or the internet I&amp;rsquo;m usually applying in private projets or at work.</description>
+      <guid>https://pgrunm.github.io/posts/aws_scaling_comparison/</guid>
+      <description>As part of my studies I had to write an assigment in the module electronic business. I decided to develop some kind of dummy REST api application where I could try different architectures. The reason for me to try this out was to see how the performance changes over time if you increase the load.
+I decided to use Go for this project, because it was designed for scalable cloud architectures and if you compile your code you just get a single binary file which you just have to upload to your machine and execute.</description>
     </item>
     
     <item>
@@ -48,6 +39,25 @@ The git structure The hugo projects mentions in their documentation to use a git
       <guid>https://pgrunm.github.io/posts/building_blog_part1/</guid>
       <description>I wanted to create a blog for a long time already, but because of university I had not much spare time. Finally I found some time to create my blog and this post will contain some background information about the software I&amp;rsquo;m using, where it&amp;rsquo;s hosted etc. Enjoy my first post!
 What to use The first question I asked myself was: What software I&amp;rsquo;m going to use for my blog? Maybe Wordpress or Joomla for example?</description>
+    </item>
+    
+    <item>
+      <title>Contact</title>
+      <link>https://pgrunm.github.io/contact/</link>
+      <pubDate>Sat, 01 Feb 2020 14:31:31 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/contact/</guid>
+      <description>Did you find an issue, want to contact me or just want to chat? Feel free to! You can find many ways to contact me on the front page.</description>
+    </item>
+    
+    <item>
+      <title>About me</title>
+      <link>https://pgrunm.github.io/about/</link>
+      <pubDate>Sat, 01 Feb 2020 14:30:43 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/about/</guid>
+      <description>Hello, my name is Pascal. I&amp;rsquo;m working as a system engineer in Wolfsburg, Lower Saxony and I&amp;rsquo;m 26 years old. I&amp;rsquo;m currently studying Business Informatics in my 6th semester so I&amp;rsquo;m almost done.
+I&amp;rsquo;m reading a lot about of DevOps, Site Reliability Engineering and also my newest point of interest IT architecture. The stuff I read about in books or the internet I&amp;rsquo;m usually applying in private projets or at work.</description>
     </item>
     
   </channel>

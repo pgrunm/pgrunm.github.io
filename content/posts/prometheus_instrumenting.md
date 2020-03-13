@@ -43,3 +43,10 @@ As soon as you add the http handler some default Golang metrics are exposed like
 This is already helpful but doesn't say too much about our application. Let's add our own metrics.
 
 ## Adding metrics for the application
+
+Before just adding any metrics it's important to ask yourself
+
+- What are the most important parts of the application to be instrumented (e. g. successfully processed input)?
+- Is the error rate suddenly increasing?
+- Does the average response time increase?
+<!-- Noch weitere? Siehe Buch übers Monitoring + Prometheus up & running -->

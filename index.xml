@@ -12,6 +12,16 @@
     
     
     <item>
+      <title>Using Prometheus for application metrics</title>
+      <link>https://pgrunm.github.io/posts/prometheus_instrumenting/</link>
+      <pubDate>Mon, 16 Mar 2020 19:33:10 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/posts/prometheus_instrumenting/</guid>
+      <description>One really important aspect of system and application engineering is monitoring. How do you know if your application, script or system is fine? Google for example uses their own software (called Borgmon) for monitoring. The open source software Prometheus allows to capture time-series data in order to monitor different statistics of an application like Borgmon does. Let&amp;rsquo;s see how we can do this on our own.
+The basics of Prometheus Some time ago I wrote a small Go application which parses RSS feeds and displays them as a simple html overview with a local webserver.</description>
+    </item>
+    
+    <item>
       <title>Scaling expriments with different AWS services</title>
       <link>https://pgrunm.github.io/posts/aws_scaling_comparison/</link>
       <pubDate>Wed, 26 Feb 2020 19:33:10 +0100</pubDate>

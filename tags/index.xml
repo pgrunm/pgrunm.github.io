@@ -6,10 +6,46 @@
     <description>Recent content in Tags on System Engineering Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 26 Feb 2020 19:33:10 +0100</lastBuildDate>
+    <lastBuildDate>Mon, 16 Mar 2020 19:33:10 +0100</lastBuildDate>
     
 	<atom:link href="https://pgrunm.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Go</title>
+      <link>https://pgrunm.github.io/tags/go/</link>
+      <pubDate>Mon, 16 Mar 2020 19:33:10 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/go/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Metrics</title>
+      <link>https://pgrunm.github.io/tags/metrics/</link>
+      <pubDate>Mon, 16 Mar 2020 19:33:10 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/metrics/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Monitoring</title>
+      <link>https://pgrunm.github.io/tags/monitoring/</link>
+      <pubDate>Mon, 16 Mar 2020 19:33:10 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/monitoring/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Prometheus</title>
+      <link>https://pgrunm.github.io/tags/prometheus/</link>
+      <pubDate>Mon, 16 Mar 2020 19:33:10 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/prometheus/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>API</title>
@@ -26,15 +62,6 @@
       <pubDate>Wed, 26 Feb 2020 19:33:10 +0100</pubDate>
       
       <guid>https://pgrunm.github.io/tags/aws/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Go</title>
-      <link>https://pgrunm.github.io/tags/go/</link>
-      <pubDate>Wed, 26 Feb 2020 19:33:10 +0100</pubDate>
-      
-      <guid>https://pgrunm.github.io/tags/go/</guid>
       <description></description>
     </item>
     

@@ -19,7 +19,6 @@ canonifyurls = true
     avatarurl = "images/avatar.png"
 
     favicon_32 = "/img/favicon-32x32.png"
-    favicon_16 = "/img/favicon-16x16.png"
 
     footercontent = "Welcome to my website. Feel free to contact me or read one of my blog posts."
 
@@ -31,7 +30,6 @@ canonifyurls = true
     rtl = false
 
     math = true
-    custom_css = ["css/custom.css"]
 
 # Social links, see docs here: https://fontawesome.com/icons?d=gallery&m=free
 [[params.social]]

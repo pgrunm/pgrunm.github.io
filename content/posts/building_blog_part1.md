@@ -2,6 +2,7 @@
 title: "Building my new blog: Part 1"
 date: 2020-02-01T14:31:31+01:00
 draft: false
+tags: [hugo, first pos]
 ---
 
 I wanted to create a blog for a long time already, but because of university I had not much spare time. Finally I found some time to create my blog and this post will contain some background information about the software I'm using, where it's hosted etc. Enjoy my first post!

@@ -23,4 +23,4 @@ I'm reading a lot about of DevOps, Site Reliability Engineering and also my newe
 - I'm running a Raspberry Pi 4 at home which is completely managed with Ansible. Of course I can still login by SSH but I prefer using Ansible :-).
 - I created an own telegram bot with Python 3. I dockerized the bot later, as you can see in my Github repo.
 - For my university studies I created a simple dummy REST API to evaluate the scaling abilitys of different AWS technologys. I am going to write a blog post about this one.
-- The latest one is this blog of course, hosted by Github pages and created with Hugo.
+- The latest one is this blog of course, hosted by Github pages and [created with Hugo](https://pgrunm.github.io/posts/building_blog_part1/).

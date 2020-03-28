@@ -14,3 +14,9 @@ Get the latest [hugo extended release](https://github.com/gohugoio/hugo/releases
 ## Updating the theme
 
 Run the command `git submodule update --remote --merge`.
+
+## Hugo stuff
+
+### Creating a new page
+
+Create the new article with the command `hugo new posts/raspi4_setup.md`.

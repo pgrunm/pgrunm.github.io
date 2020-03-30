@@ -3,6 +3,36 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://pgrunm.github.io/tags/ansible/</loc>
+    <lastmod>2020-03-28T18:45:07+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/tags/linux/</loc>
+    <lastmod>2020-03-28T18:45:07+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/posts/</loc>
+    <lastmod>2020-03-28T18:45:07+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/tags/raspberry-pi/</loc>
+    <lastmod>2020-03-28T18:45:07+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/posts/raspi4_setup/</loc>
+    <lastmod>2020-03-28T18:45:07+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pgrunm.github.io/tags/</loc>
+    <lastmod>2020-03-28T18:45:07+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://pgrunm.github.io/tags/go/</loc>
     <lastmod>2020-03-16T19:33:10+01:00</lastmod>
   </url>
@@ -18,17 +48,7 @@
   </url>
   
   <url>
-    <loc>https://pgrunm.github.io/posts/</loc>
-    <lastmod>2020-03-16T19:33:10+01:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://pgrunm.github.io/tags/prometheus/</loc>
-    <lastmod>2020-03-16T19:33:10+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://pgrunm.github.io/tags/</loc>
     <lastmod>2020-03-16T19:33:10+01:00</lastmod>
   </url>
   

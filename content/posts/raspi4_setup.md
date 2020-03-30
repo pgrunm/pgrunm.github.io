@@ -1,5 +1,5 @@
 ---
-draft: true
+draft: false
 date: 2020-03-28T18:45:07+01:00
 title: Setting up the new Raspberry Pi 4 with Ansible
 description: "Managing my new Raspberry Pi with Ansible."

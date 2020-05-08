@@ -32,16 +32,31 @@ After the standardization of the Unified Extensible Firmware Interface (UEFI) wh
 
 ## Moving from MBR to GPT
 
-I wanted to this for longer but until now I didn't have time to read about this topic on the internet. Before making any changes to your system always make up a backup and try to restore some files.
+I wanted to this for longer but until now I didn't have time to read about this topic on the internet. Before making any changes to your system always make up a backup and try to restore some files. I really can recommend using [Clonezilla](https://clonezilla.org/) for this, as it's open source and works with many many filesystems (you should give it a try).
 
+### Converting the Master Boot Record
+
+You can easily convert the Master Boot Record with the open source program [gdisk](https://www.rodsbooks.com/gdisk/walkthrough.html). It is already included in the [Gparted Live distribution](https://gparted.org/livecd.php), which you just have to boot and open up a terminal.
+
+Inside the terminal you just have the following commands:
+
+```bash
+# Run this to the appropiate disk in my casee /dev/sda
+gdisk /dev/sda 
+# Enter the recovery menu with r
+r
+# Load the MBR and create a GPT from this
+f
+# Write the data to disk
+w
+```
+
+Pretty simple isn't it? I had to search a little while for this on the internet and you can find a lot of stuff from 3rd party tools. I found a good way for me to this with just four basic commands.
 <!-- Source of image: By User:Kbolino., CC BY-SA 2.5, https://commons.wikimedia.org/w/index.php?curid=3036588 -->
 
 <!-- 
 https://rodsbooks.com/gdisk/
-gdisk /dev/sda
-r
-f
-w
+
 -> Fertig
 
 Unterschiede

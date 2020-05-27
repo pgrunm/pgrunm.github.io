@@ -1,6 +1,6 @@
 ---
-draft: true
-date: 2020-04-09T21:45:07+01:00
+draft: false
+date: 2020-04-19T21:45:07+01:00
 title: "GPT and MBR: Moving from MBR to GPT"
 description: "Information on GPT and how to move from MBR to GPT."
 slug: "" 

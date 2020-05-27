@@ -2,7 +2,7 @@
 draft: true
 date: 2020-04-09T21:45:07+01:00
 title: "GPT and MBR: Moving from MBR to GPT"
-description: "Managing my new Raspberry Pi with Ansible."
+description: "Information on GPT and how to move from MBR to GPT."
 slug: "" 
 tags: [Linux, Windows, Hard Drive, GPT, MBR]
 externalLink: ""
@@ -42,7 +42,7 @@ Inside the terminal you just have the following commands:
 
 ```bash
 # Run this to the appropiate disk in my casee /dev/sda
-gdisk /dev/sda 
+gdisk /dev/sda
 # Enter the recovery menu with r
 r
 # Load the MBR and create a GPT from this
@@ -54,20 +54,20 @@ w
 Pretty simple isn't it? I had to search a little while for this on the internet and you can find a lot of stuff from 3rd party tools. I found a good way for me to this with just four basic commands.
 <!-- Source of image: By User:Kbolino., CC BY-SA 2.5, https://commons.wikimedia.org/w/index.php?curid=3036588 -->
 
-<!-- 
-https://rodsbooks.com/gdisk/
-
--> Fertig
-
-Unterschiede
-Vor-/Nachteile
- -->
-
 ## Summary: GPT vs MBR
 
- |                                | MBR                                                         | GPT |
- | ------------------------------ | ----------------------------------------------------------- | --- |
- | Number of supported partitions | Up to 4 primary partions or more with an extended partition |     |
- | Maximum size of partitions     | Maximum size is 2 TiB per partition                         |     |
- | Supports BIOS / UEFI           | Only BIOS supported                                         |     |
- | Supported operating systems:   |                                                             |     |
+To sum up you can find in this table which explains some of the differences between the MBR and the GPT.
+
+ |                                | MBR                                                         | GPT                                                                                                               |
+ | ------------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+ | Number of supported partitions | Up to 4 primary partions or more with an extended partition | Up to 128 partitions (natively!)                                                                                  |
+ | Maximum size of partitions     | Maximum size is 2 TiB per partition                         | According to [IBM](https://developer.ibm.com/tutorials/l-gpt/) support for up to eight zebibytes                  |
+ | Supports BIOS / UEFI           | Only BIOS supported                                         | Yes/Yes                                                                                                           |
+ | Supported operating systems:   | Almost any operating system                                 | More information can be found [here](https://en.wikipedia.org/wiki/GUID_Partition_Table#Operating-system_support) |
+
+If you're using newer hardware (like a mainboard with an UEFI) it is a good idea to use GPT instead of the old fashioned MBR.
+
+### Further reading
+
+- The [GPT fdisk tutorial](https://rodsbooks.com/gdisk/).
+- IBM's [Linux and GPT](https://developer.ibm.com/tutorials/l-gpt/) tutorial.

@@ -6,10 +6,55 @@
     <description>Recent content in Tags on System Engineering Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 28 Mar 2020 18:45:07 +0100</lastBuildDate>
+    <lastBuildDate>Sun, 19 Apr 2020 21:45:07 +0100</lastBuildDate>
     
 	<atom:link href="https://pgrunm.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GPT</title>
+      <link>https://pgrunm.github.io/tags/gpt/</link>
+      <pubDate>Sun, 19 Apr 2020 21:45:07 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/gpt/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Hard Drive</title>
+      <link>https://pgrunm.github.io/tags/hard-drive/</link>
+      <pubDate>Sun, 19 Apr 2020 21:45:07 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/hard-drive/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Linux</title>
+      <link>https://pgrunm.github.io/tags/linux/</link>
+      <pubDate>Sun, 19 Apr 2020 21:45:07 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/linux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>MBR</title>
+      <link>https://pgrunm.github.io/tags/mbr/</link>
+      <pubDate>Sun, 19 Apr 2020 21:45:07 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/mbr/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Windows</title>
+      <link>https://pgrunm.github.io/tags/windows/</link>
+      <pubDate>Sun, 19 Apr 2020 21:45:07 +0100</pubDate>
+      
+      <guid>https://pgrunm.github.io/tags/windows/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>Ansible</title>
@@ -17,15 +62,6 @@
       <pubDate>Sat, 28 Mar 2020 18:45:07 +0100</pubDate>
       
       <guid>https://pgrunm.github.io/tags/ansible/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Linux</title>
-      <link>https://pgrunm.github.io/tags/linux/</link>
-      <pubDate>Sat, 28 Mar 2020 18:45:07 +0100</pubDate>
-      
-      <guid>https://pgrunm.github.io/tags/linux/</guid>
       <description></description>
     </item>
     

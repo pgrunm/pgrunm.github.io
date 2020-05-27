@@ -4,9 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
 
     <meta name="author" content="Pascal Grundmeier">
-    <meta name="description" content="Pascal Grundmeiers&#39;s personal website">
+    <meta name="description" content="I tested out the scaling abilities of different AWS services by creating a dummy application and stress tested them with Locust.">
     <meta name="keywords" content="blog,devops engineer, site reliability engineer">
 
     <meta name="twitter:card" content="summary"/>
@@ -33,7 +34,7 @@
     
 
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
 
     
@@ -48,10 +49,8 @@
       
         
         
-        <link rel="stylesheet" href="https://pgrunm.github.io/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+        <link rel="stylesheet" href="https://pgrunm.github.io/css/coder-dark.min.e78e80fc3a585a4d1c8fc7f58623b6ff852411e38431a9cd1792877ecaa160f6.css" integrity="sha256-546A/DpYWk0cj8f1hiO2/4UkEeOEManNF5KHfsqhYPY=" crossorigin="anonymous" media="screen" />
       
-    
-
     
 
     
@@ -61,7 +60,7 @@
     <link rel="icon" type="image/png" href="https://pgrunm.github.io/img/favicon-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="https://pgrunm.github.io/images/favicon-16x16.png" sizes="16x16">
 
-    <meta name="generator" content="Hugo 0.65.3" />
+    <meta name="generator" content="Hugo 0.70.0" />
   </head>
 
   
@@ -153,33 +152,33 @@
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Python" data-lang="Python"><span style="color:#f92672">from</span> locust <span style="color:#f92672">import</span> HttpLocust, TaskSet, between
 <span style="color:#f92672">from</span> random <span style="color:#f92672">import</span> randrange
 
-<span style="color:#75715e"># Opening the website i.e. http://example.com/customerdata/123</span>
-<span style="color:#75715e"># The actual hostname is specified and the Powershell script following.</span>
+<span style="color:#75715e"># Opening the website i.e. http://example.com/customerdata/123</span>
+<span style="color:#75715e"># The actual hostname is specified and the Powershell script following.</span>
 <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">index</span>(l):
     l<span style="color:#f92672">.</span>client<span style="color:#f92672">.</span>get(f<span style="color:#e6db74">&#39;/customerdata/{randrange(1, 4500)}&#39;</span>)
 
 <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserBehavior</span>(TaskSet):
     tasks <span style="color:#f92672">=</span> {index: <span style="color:#ae81ff">1</span>}
-    <span style="color:#75715e"># Things to do before doing anything else.</span>
+    <span style="color:#75715e"># Things to do before doing anything else.</span>
 
 
 <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">WebsiteUser</span>(HttpLocust):
     task_set <span style="color:#f92672">=</span> UserBehavior
-    <span style="color:#75715e"># Definition of the user behavior: Wait at least 5 seconds and maximum 9 seconds.</span>
+    <span style="color:#75715e"># Definition of the user behavior: Wait at least 5 seconds and maximum 9 seconds.</span>
     wait_time <span style="color:#f92672">=</span> between(<span style="color:#ae81ff">5.0</span>, <span style="color:#ae81ff">9.0</span>)
 </code></pre></div><p>The Python script handles the logic which url to call and how long to wait. The following Powershell snippet runs Locust to call the web service and create the load.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Powershell" data-lang="Powershell"><span style="color:#66d9ef">param</span>(
-    <span style="color:#75715e"># This parameter allows you to enter a hostname just by adding a -Hostname.</span>
+    <span style="color:#75715e"># This parameter allows you to enter a hostname just by adding a -Hostname.</span>
     $Hostname
 )
 
-<span style="color:#75715e"># This will be written to the file name.</span>
+<span style="color:#75715e"># This will be written to the file name.</span>
 $testCase = <span style="color:#e6db74">&#34;three_tier&#34;</span>
 
-<span style="color:#75715e"># How many users do we want to simulate?</span>
+<span style="color:#75715e"># How many users do we want to simulate?</span>
 $numberOfUsersToSimulate = 50, 100, 200, 400, 800, 1500
 
-<span style="color:#75715e"># AWS Hostname</span>
+<span style="color:#75715e"># AWS Hostname</span>
 <span style="color:#66d9ef">if</span> ($null <span style="color:#f92672">-eq</span> $Host) {
     $Hostname = Read-Host -Prompt <span style="color:#e6db74">&#34;Please enter the AWS Hostname&#34;</span>
 }
@@ -187,18 +186,18 @@ $numberOfUsersToSimulate = 50, 100, 200, 400, 800, 1500
 <span style="color:#66d9ef">foreach</span> ($users <span style="color:#66d9ef">in</span> $numberOfUsersToSimulate) {
     $testWithUsers = $testCase + <span style="color:#e6db74">&#34;_&#34;</span> + $users
 
-    <span style="color:#75715e"># Executing the Python file.</span>
+    <span style="color:#75715e"># Executing the Python file.</span>
     locust <span style="color:#f92672">-f</span> .\Locust\Load_Test.py \
-    --no-web \ <span style="color:#75715e"># Don&#39;t run the web interface</span>
-    -c $users \ <span style="color:#75715e"># Simulate x users.</span>
-    -r 10 \ <span style="color:#75715e"># Number of created users per second.</span>
-    --step-load \ <span style="color:#75715e"># Increase the load in steps.</span>
-    --step-clients ($users/10) \ <span style="color:#75715e"># Increase the load by 10 percent every step.</span>
-    --step-time 15s \ <span style="color:#75715e"># After 1.5 minutes the load reaches 100%.</span>
-    -t 3m \ <span style="color:#75715e"># The performance test runs 3 minutes overall.</span>
-    --csv=Results/$testWithUsers \ <span style="color:#75715e"># Save the measured data in a csv file.</span>
-    --host=<span style="color:#e6db74">&#34;http://</span>$($Hostname)<span style="color:#e6db74">:10000&#34;</span> \ <span style="color:#75715e"># This is the hostname on tcp port 10000.</span>
-    --only-summary <span style="color:#75715e"># Print only a summary once finished.</span>
+    --no-web \ <span style="color:#75715e"># Don&#39;t run the web interface</span>
+    -c $users \ <span style="color:#75715e"># Simulate x users.</span>
+    -r 10 \ <span style="color:#75715e"># Number of created users per second.</span>
+    --step-load \ <span style="color:#75715e"># Increase the load in steps.</span>
+    --step-clients ($users/10) \ <span style="color:#75715e"># Increase the load by 10 percent every step.</span>
+    --step-time 15s \ <span style="color:#75715e"># After 1.5 minutes the load reaches 100%.</span>
+    -t 3m \ <span style="color:#75715e"># The performance test runs 3 minutes overall.</span>
+    --csv=Results/$testWithUsers \ <span style="color:#75715e"># Save the measured data in a csv file.</span>
+    --host=<span style="color:#e6db74">&#34;http://</span>$($Hostname)<span style="color:#e6db74">:10000&#34;</span> \ <span style="color:#75715e"># This is the hostname on tcp port 10000.</span>
+    --only-summary <span style="color:#75715e"># Print only a summary once finished.</span>
 }
 
 </code></pre></div><p>This is how I created the load on my service.</p>
@@ -1150,18 +1149,21 @@ $numberOfUsersToSimulate = 50, 100, 200, 400, 800, 1500
 
       </div>
 
-      <footer class="footer">
-  <section class="container">
-    
-      <p>Welcome to my website. Feel free to contact me or read one of my blog posts.</p>
-    
-    
-    
-    
-  </section>
-</footer>
+      
+  <footer class="footer">
+    <section class="container">
+      
+        <p>Welcome to my website. Feel free to contact me or read one of my blog posts.</p>
+      
+      
+      
+      
+    </section>
+  </footer>
 
     </main>
+
+    
 
     
 

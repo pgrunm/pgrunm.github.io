@@ -4,9 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
 
     <meta name="author" content="Pascal Grundmeier">
-    <meta name="description" content="Pascal Grundmeiers&#39;s personal website">
+    <meta name="description" content="Managing my new Raspberry Pi with Ansible.">
     <meta name="keywords" content="blog,devops engineer, site reliability engineer">
 
     <meta name="twitter:card" content="summary"/>
@@ -33,7 +34,7 @@
     
 
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
 
     
@@ -48,10 +49,8 @@
       
         
         
-        <link rel="stylesheet" href="https://pgrunm.github.io/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+        <link rel="stylesheet" href="https://pgrunm.github.io/css/coder-dark.min.e78e80fc3a585a4d1c8fc7f58623b6ff852411e38431a9cd1792877ecaa160f6.css" integrity="sha256-546A/DpYWk0cj8f1hiO2/4UkEeOEManNF5KHfsqhYPY=" crossorigin="anonymous" media="screen" />
       
-    
-
     
 
     
@@ -61,7 +60,7 @@
     <link rel="icon" type="image/png" href="https://pgrunm.github.io/img/favicon-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="https://pgrunm.github.io/images/favicon-16x16.png" sizes="16x16">
 
-    <meta name="generator" content="Hugo 0.65.3" />
+    <meta name="generator" content="Hugo 0.70.0" />
   </head>
 
   
@@ -152,19 +151,19 @@
 <h2 id="configuring-some-basic-settings">Configuring some basic settings</h2>
 <p>To be able to configure settings with Ansible one way to manage my Pi is to add it&rsquo;s IP address to my hosts file which could like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Yaml" data-lang="Yaml">---
-all:
-  vars:
+<span style="color:#66d9ef">all</span>:
+  <span style="color:#66d9ef">vars</span>:
     <span style="color:#66d9ef">ansible_ssh_user</span>: pascal
     <span style="color:#66d9ef">user_ssh_pub_key</span>: <span style="color:#e6db74">&#34;{{ lookup(&#39;file&#39;,&#39;~/ssh_key_raspi&#39;) }}&#34;</span>
 
-  children:
-    pis:
-      <span style="color:#75715e"># List of Raspberry Pis</span>
-      hosts:
-        <span style="color:#ae81ff">192.168.200.150</span>:
-    new_pis:
-      <span style="color:#75715e"># Contains only new Pis</span>
-      hosts:
+  <span style="color:#66d9ef">children</span>:
+    <span style="color:#66d9ef">pis</span>:
+      <span style="color:#75715e"># List of Raspberry Pis</span>
+      <span style="color:#66d9ef">hosts</span>:
+        <span style="color:#66d9ef">192.168.200.150</span>:
+    <span style="color:#66d9ef">new_pis</span>:
+      <span style="color:#75715e"># Contains only new Pis</span>
+      <span style="color:#66d9ef">hosts</span>:
         <span style="color:#66d9ef">192.168.200.151</span>:  
 </code></pre></div><p>You may notice that there are two different groups: <code>pis</code> and <code>new_pis</code>. This is because the new Raspberry Pi is still naked and there is no public SSH key deposited which allows seamless remote access.</p>
 <p>When I created my new SSH key pair I looked for technical recommendations from German Federal Office for Information Security (or BSI in German). They recommend in the directive <a href="https://www.bsi.bund.de/EN/Publications/TechnicalGuidelines/tr02102/tr02102_node.html">TR-02102-4</a> things like</p>
@@ -177,18 +176,18 @@ all:
 <p>Like mentioned before I generated already before an SSH key like described <a href="https://wiki.archlinux.org/index.php/SSH_keys#Ed25519">here</a>. With this playbook I created a the new user <code>pascal</code> for me, copied the ssh onto the remote machine and deleted the default user pi for security reasons.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Yaml" data-lang="Yaml">---
 - <span style="color:#66d9ef">hosts</span>: new_pis
-  tasks:
+  <span style="color:#66d9ef">tasks</span>:
     - <span style="color:#66d9ef">name</span>: Add the user <span style="color:#e6db74">&#39;pascal&#39;</span>
-      user:
+      <span style="color:#66d9ef">user</span>:
         <span style="color:#66d9ef">name</span>: pascal
 
     - <span style="color:#66d9ef">name</span>: Set authorized key taken from file
-      authorized_key:
+      <span style="color:#66d9ef">authorized_key</span>:
         <span style="color:#66d9ef">user</span>: <span style="color:#e6db74">&#34;pascal&#34;</span>
         <span style="color:#66d9ef">state</span>: present
         <span style="color:#66d9ef">key</span>: <span style="color:#e6db74">&#34;{{ lookup(&#39;file&#39;, &#39;/home/pascal/pub&#39;) }}&#34;</span>
     - <span style="color:#66d9ef">name</span>: Remove the default user <span style="color:#e6db74">&#39;pi&#39;</span>
-      user:
+      <span style="color:#66d9ef">user</span>:
         <span style="color:#66d9ef">name</span>: pi
         <span style="color:#66d9ef">ensure</span>: absent
         <span style="color:#66d9ef">ansible_ssh_user</span>: pascal
@@ -202,34 +201,34 @@ all:
 </ul>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Yaml" data-lang="Yaml">---
 - <span style="color:#66d9ef">hosts</span>: new_pis
-  <span style="color:#75715e"># You may need to add --ask-become-pass -b on the command line</span>
+  <span style="color:#75715e"># You may need to add --ask-become-pass -b on the command line</span>
   <span style="color:#66d9ef">become</span>: yes
-  tasks:
+  <span style="color:#66d9ef">tasks</span>:
     - <span style="color:#66d9ef">name</span>: Allow passwordless sudo for my account
-      lineinfile:
+      <span style="color:#66d9ef">lineinfile</span>:
         <span style="color:#66d9ef">path</span>: /etc/sudoers
         <span style="color:#66d9ef">state</span>: present
         <span style="color:#66d9ef">line</span>: <span style="color:#e6db74">&#34;pascal ALL=(ALL) NOPASSWD: ALL&#34;</span>
         <span style="color:#66d9ef">validate</span>: <span style="color:#e6db74">&#34;visudo -cf %s&#34;</span>
 
     - <span style="color:#66d9ef">name</span>: Disallow password authentication
-      lineinfile:
+      <span style="color:#66d9ef">lineinfile</span>:
         <span style="color:#66d9ef">path</span>: /etc/ssh/sshd_config
         <span style="color:#66d9ef">regexp</span>: <span style="color:#e6db74">&#34;^PasswordAuthentication&#34;</span>
         <span style="color:#66d9ef">line</span>: <span style="color:#e6db74">&#34;PasswordAuthentication no&#34;</span>
         <span style="color:#66d9ef">state</span>: present
-      notify:
+      <span style="color:#66d9ef">notify</span>:
         - Restart ssh
 
     - <span style="color:#66d9ef">name</span>: Disable root login
-      lineinfile:
+      <span style="color:#66d9ef">lineinfile</span>:
         <span style="color:#66d9ef">path</span>: /etc/ssh/sshd_config
         <span style="color:#66d9ef">regexp</span>: <span style="color:#e6db74">&#34;^PermitRootLogin&#34;</span>
         <span style="color:#66d9ef">line</span>: <span style="color:#e6db74">&#34;PermitRootLogin no&#34;</span>
         <span style="color:#66d9ef">state</span>: present
 
     - <span style="color:#66d9ef">name</span>: Restart ssh daemon
-      service:
+      <span style="color:#66d9ef">service</span>:
         <span style="color:#66d9ef">name</span>: sshd
         <span style="color:#66d9ef">state</span>: restarted
 </code></pre></div><p>While running this I of course had to add my sudo password with the <a href="https://docs.ansible.com/ansible/latest/user_guide/become.html#become-command-line-options">commandline parameter</a> <code>-K</code> to supply the password to become root.</p>
@@ -240,18 +239,18 @@ all:
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Yaml" data-lang="Yaml">---
 - <span style="color:#66d9ef">hosts</span>: pis
   <span style="color:#66d9ef">become</span>: yes
-  tasks:
+  <span style="color:#66d9ef">tasks</span>:
     - <span style="color:#66d9ef">name</span>: Ping the Raspi
-      ping:
+      <span style="color:#66d9ef">ping</span>:
 
-    <span style="color:#75715e"># See: https://docs.ansible.com/ansible/latest/modules/apt_module.html#examples</span>
+    <span style="color:#75715e"># See: https://docs.ansible.com/ansible/latest/modules/apt_module.html#examples</span>
     - <span style="color:#66d9ef">name</span>: Run apt update
-      apt:
+      <span style="color:#66d9ef">apt</span>:
         <span style="color:#66d9ef">update_cache</span>: yes
       <span style="color:#66d9ef">become</span>: <span style="color:#66d9ef">true</span>
 
     - <span style="color:#66d9ef">name</span>: Run apt upgrade
-      apt:
+      <span style="color:#66d9ef">apt</span>:
         <span style="color:#66d9ef">name</span>: <span style="color:#e6db74">&#34;*&#34;</span>
         <span style="color:#66d9ef">state</span>: latest
       <span style="color:#66d9ef">become</span>: <span style="color:#66d9ef">true</span>
@@ -295,18 +294,21 @@ all:
 
       </div>
 
-      <footer class="footer">
-  <section class="container">
-    
-      <p>Welcome to my website. Feel free to contact me or read one of my blog posts.</p>
-    
-    
-    
-    
-  </section>
-</footer>
+      
+  <footer class="footer">
+    <section class="container">
+      
+        <p>Welcome to my website. Feel free to contact me or read one of my blog posts.</p>
+      
+      
+      
+      
+    </section>
+  </footer>
 
     </main>
+
+    
 
     
 

@@ -7,7 +7,7 @@ printf "\033[0;32mDeploying updates to GitHub...\033[0m\n"
 
 # Build the project.
 # Really important: If you use a theme add quotation marks nasty errors when creating your pages.
-./hugo -t "hugo-coder"
+hugo -t "hugo-coder"
 
 # Go To Public folder
 cd public

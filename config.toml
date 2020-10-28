@@ -31,10 +31,10 @@ canonifyurls = true
 
     math = true
 
-# Social links, see docs here: https://fontawesome.com/icons?d=gallery&m=free
+# Social links, see docs here: https://forkaweso.me/Fork-Awesome/icons/
 [[params.social]]
     name = "Github"
-    icon = "fab fa-github fa-2x"
+    icon = "fa fa-github fa-2x"
     weight = 1
     url = "https://github.com/pgrunm/"
 [[params.social]]
@@ -44,12 +44,12 @@ canonifyurls = true
     url = "mailto:pgrunm+blog[at]gmail.com"
 [[params.social]]
     name = "Telegram"
-    icon = "fab fa-telegram-plane fa-2x"
+    icon = "fa fa-telegram fa-2x"
     weight = 3
     url = "https://t.me/Pascal982"
 [[params.social]]
     name = "Xing"
-    icon = "fab fa-xing  fa-2x"
+    icon = "fa fa-xing  fa-2x"
     weight = 4
     url = "https://www.xing.com/profile/Pascal_Grundmeier"
 [[params.social]]

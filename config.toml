@@ -54,7 +54,7 @@ canonifyurls = true
     url = "https://www.xing.com/profile/Pascal_Grundmeier"
 [[params.social]]
     name = "RSS"
-    icon = "fas fa-rss"
+    icon = "fa fa-rss"
     weight = 5
     url = "https://pgrunm.github.io/index.xml"
     rel = "alternate"

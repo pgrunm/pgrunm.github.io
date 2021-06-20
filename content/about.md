@@ -12,11 +12,13 @@ I'm reading a lot about of DevOps, Site Reliability Engineering and also my newe
 
 - Windows Server and Linux systems engineering.
 - Coding with Python3, Golang, Powershell, Bash and some Java or C.
-- Knowledge with continuous integration and continuous deployment (i. e. with Jenkins and Ansible or Powershell DSC).
+- Knowledge with continuous integration and continuous deployment (i. e. with Jenkins).
+- Configuration management with Ansible, Teraform and Powershell Desired State Configuration
 - Monitoring systems and services with Icinga 2 or Prometheus.
 - Docker and K8s.
 - Amazon Web Services knowledge (i. e. ELB, EC2, RDS, ElastiCache or AWS Lambda).
 - I'm also TÜV certified IT Architecture and Technology Professional.
+- Recently I finished my Bachelor's degree and I am now B. Sc. in Wirtschaftsinformatik. :-)
 
 ## Projects
 

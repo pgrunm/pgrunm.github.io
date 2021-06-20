@@ -856,6 +856,8 @@ resource "aws_iam_policy" "jenkins_agents" {
 
 With everything of the files listed above the necessary AWS infrastructure is created within a few minutes. No need to click or anything else, you just have to run a `terraform apply` from the commandline. As it's hard to get all the code inside this document, I created a [new repository on Github](https://github.com/pgrunm/aws_jenkins_flutter), where I'll upload all the required code.
 
+The cool thing about all the stuff above is, it created everthing and from now on we only have to worry about the container setup. The container setup I'm going to cover in part 2 of the series.
+
 If you have any questions, do not hesitate to contact me! I hope you enjoyed reading this post and we will see each other in part 2, where we talk about how to configure the Jenkins master and agent.
 
 <!-- See more in [part 2 of the series](/posts/infrastructure_flutter_part2). -->

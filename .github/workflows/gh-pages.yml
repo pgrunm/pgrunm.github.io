@@ -1,5 +1,6 @@
+# Documentation:
 # .github/workflows/github-pages.yml
-
+#  https://github.com/peaceiris/actions-gh-pages#getting-started
 name: GitHub Pages
 
 on:
@@ -30,3 +31,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           allow_empty_commit: true
+          commit_message: ${{ github.event.head_commit.message }}
+          force_orphan: true

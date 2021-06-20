@@ -2,9 +2,9 @@
 draft: false
 date: 2021-04-21T21:12:43+01:00
 title: "Developing Flutter apps with cloud infrastructure: Part 1"
-description: "Trying to use Nginx as forward proxy, but failing."
+description: "This post shows how create AWS architecture with Terraform for working Jenkins installation."
 slug: ""
-tags: [DevOps, Flutter, AWS, Jenkins]
+tags: [DevOps, Flutter, AWS, Jenkins, Terraform]
 externalLink: ""
 series: []
 ---

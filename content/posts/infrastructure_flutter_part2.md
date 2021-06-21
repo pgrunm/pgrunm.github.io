@@ -17,7 +17,7 @@ Hello again dear reader. This is the 2nd part of the AWS Flutter development ser
 
 ### Jenkins Master container
 
-The jenkins master container is the brain of the entire application. It controls and schedules new ECS Jenkins agents if necessary. Every piece of configuration is populated from environment variables as you can see in the dockerfile for the Jenkins master: 
+The jenkins master container is the brain of the entire application. It controls and schedules new ECS Jenkins agents if necessary. Every piece of configuration is populated from environment variables as you can see in the dockerfile for the Jenkins master:
 
 <!-- Source Code Jenkins Master Dockerfile -->
 ```dockerfile
@@ -45,7 +45,7 @@ If you want to have a look at the sourcecode you can find it again inside the [G
 
 Another idea would be to store the configuration inside environment variables (if it's supported) or even better: to store the configuration in a volume, which the container can mount. With this you don't have to create a new container every time you change the config. Instead you just have to reboot your container.
 
-| File                          | Explanation                                  |
+| File                          | Content                                      |
 | ----------------------------- | -------------------------------------------- |
 | plugins.txt                   | Contains a list with plugins to be installed |
 | initialConfigs.groovy         | Groovy settings                              |

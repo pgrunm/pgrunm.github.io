@@ -860,4 +860,4 @@ The cool thing about all the stuff above is, it created everthing and from now o
 
 If you have any questions, do not hesitate to contact me! I hope you enjoyed reading this post and we will see each other in part 2, where we talk about how to configure the Jenkins master and agent.
 
-<!-- See more in [part 2 of the series](/posts/infrastructure_flutter_part2). -->
+See more in [part 2 of the series](/posts/infrastructure_flutter_part2).

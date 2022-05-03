@@ -21,6 +21,8 @@ jobs:
         uses: peaceiris/actions-hugo@v2
         with:
           hugo-version: '0.83.1'
+          # Use the extended Hugo version.
+          extended: true
 
       # Cache all built files.
       - uses: actions/cache@v2

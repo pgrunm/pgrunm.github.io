@@ -11,7 +11,7 @@ updates:
     schedule:
       interval: "daily"
       time: "12:00"
-      timezone: "Germany"
+      timezone: "Europe/Berlin"
       
   # Alert for Github Actions
   - package-ecosystem: "github-actions"
@@ -19,7 +19,7 @@ updates:
     schedule:
       interval: "daily"
       time: "12:00"
-      timezone: "Germany"
+      timezone: "Europe/Berlin"
   
   # Alert for Hugo
   - package-ecosystem: "gomod"
@@ -27,4 +27,4 @@ updates:
     schedule:
       interval: "daily"
       time: "12:00"
-      timezone: "Germany"
+      timezone: "Europe/Berlin"

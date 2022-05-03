@@ -24,8 +24,7 @@ canonifyurls = true
 
     colorscheme = "auto"
 
-    hidecredits = true
-    hidecopyright = true
+    since = 2019
 
     rtl = false
 

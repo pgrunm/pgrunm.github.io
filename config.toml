@@ -40,7 +40,7 @@ canonifyurls = true
     name = "E-Mail"
     icon = "fa fa-envelope fa-2x"
     weight = 2
-    url = "mailto:pgrunm+blog[at]gmail.com"
+    url = "https://mailhide.io/e/kQhcqCgM"
 [[params.social]]
     name = "Telegram"
     icon = "fa fa-telegram fa-2x"

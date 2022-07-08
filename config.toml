@@ -69,7 +69,7 @@ canonifyurls = true
     weight = 2
     url  = "/posts/"
 [[menu.main]]
-    name = "About"
+    name = "About Me"
     weight = 3
     url = "/about/"
 [[menu.main]]

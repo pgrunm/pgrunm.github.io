@@ -16,9 +16,9 @@ If I had to describe myself with a three words, I'd reply I am inquisitive, enga
 - Windows Server and Linux (RHEL, Debian/Ubuntu) systems engineering.
 - Docker (Building images, service administration etc.)
 - Kubernetes administration and usage.
-- Amazon Web Services knowledge for services like ELB, EC2, RDS, ElastiCache, ECS, Lambda and VPC of course.
+- Amazon Web Services knowledge for services like CloudTrail, CloudWatch, EC2, ECS, ElastiCache, ELB, Lambda, RDS and VPC of course.
 - Coding with Python 3, Golang, Powershell, Bash and some Java and C. Especially Python is the Swiss army knife of all programming languages.
-- Knowledge in common network protocols (IPv4, IPv6, TCP, UDP) and network administration (firewalls, routing, VPN).
+- Knowledge in common network protocols (DNS, HTTP(S), IPv4, IPv6, TCP, TLS, UDP) and network administration (firewalls, routing and load balancing).
 - Knowledge with continuous integration and continuous deployment (i. e. with Jenkins or Github Automation).
 - Configuration management with Ansible, Terraform and Powershell Desired State Configuration. I really enjoy running my Linux servers with Ansible. For cloud orchestration I prefer Terraform, because it is way faster and easier.
 - Monitoring systems and services with Icinga 2 or Prometheus.
@@ -41,6 +41,7 @@ Now you already know quite a lot about my skills, but I also
 
 - Really enjoy riding my gravel bike around Brunswick.
 - Like to go on a hike with friends.
+- Enjoy playing chess online or with a friend
 - Play at Eintracht Braunschweig's table football team or
 - Enjoy reading a book in my favourite chair with a cup of tea. 
 

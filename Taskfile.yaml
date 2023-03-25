@@ -7,7 +7,8 @@ vars:
 
 tasks:
   default:
+    desc: Runs Hugo in development mode.
     cmds:
-      - cmd: hugo serve -b "http://localhost:1313"
+      - cmd: hugo serve -b "http://localhost:1313" -DEF
         ignore_error: true
       - defer: rm .hugo_build.lock

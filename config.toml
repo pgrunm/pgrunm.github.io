@@ -1,6 +1,6 @@
 baseURL = "https://pgrunm.github.io/"
 languageCode = "en-us"
-title = "System Engineering Blog"
+title = "Engineering Blog"
 
 # Name of the theme.
 # Documentation of the theme: https://github.com/luizdepra/hugo-coder/wiki
@@ -21,7 +21,7 @@ path = 'github.com/luizdepra/hugo-coder'
 
 [params]
 author = "Pascal Grundmeier"
-info = "System Engineer"
+info = "DevOps Engineer"
 description = "Pascal Grundmeiers's personal website"
 keywords = "blog,devops engineer, site reliability engineer"
 avatarurl = "images/avatar.png"

@@ -1,0 +1,60 @@
+#@ load("@ytt:data", "data")
+
+#@ for item in data.values.stages:
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: #@ data.values.app_name
+    team: #@ data.values.labels.team
+  name: #@ data.values.app_name
+  namespace: #@ item.namespace
+spec:
+  replicas: #@ item.replicas
+  selector:
+    matchLabels:
+      app: #@ data.values.app_name
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: #@ data.values.app_name
+      annotations:
+        "prometheus.io/scrape": "true"
+        "prometheus.io/port": #@ data.values.metrics.port
+    spec:
+      containers:
+        image: #@ "ghcr.io/example-org/" +  data.values.app_name + ":" + str(item.version)
+        env:
+          - name: DATABASE
+            value: #@ item.variables.database
+        imagePullPolicy: Always
+        livenessProbe:
+        failureThreshold: 3
+        httpGet:
+            path: #@ data.values.metrics.path
+            port: #@ data.values.metrics.port
+        periodSeconds: 10
+        name: #@ data.values.app_name
+        ports:
+          - containerPort: #@ data.values.metrics.port
+            name: http
+        readinessProbe:
+          httpGet:
+              path: #@ data.values.metrics.path
+              port: #@ data.values.metrics.port
+          periodSeconds: 5
+        resources:
+        limits:
+            memory: #@ data.values.resources.mem_limit
+            cpu: #@ data.values.resources.cpu_limit
+        requests:
+            memory: #@ data.values.resources.mem_requests
+      priorityClassName: #@ data.values.prioritiy_class
+      restartPolicy: Always
+#@ end

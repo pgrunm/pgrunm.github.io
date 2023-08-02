@@ -1,7 +1,7 @@
 ---
 title: "Kubernetes templating with Carvel ytt"
-date: 2023-08-01T13:35:33+02:00
-draft: true
+date: 2023-07-25T13:35:33+02:00
+draft: false
 tags: [kubernetes, yaml, cncf]
 ---
 
@@ -171,6 +171,108 @@ spec:
 #@ end
 ```
 
-## Creating the manifest files
+### Using variables with ytt
 
-Once everyone of the two above listed files is prepared, we can create the manifest file.
+As you saw, we used a lot of YAML comments within the code. But these of course aren't comments, these are variables for ytt! If you look at the metadata part, you can see these are all variables:
+
+```yaml
+metadata:
+  labels:
+    app: #@ data.values.app_name
+    team: #@ data.values.labels.team
+  name: #@ data.values.app_name
+  namespace: #@ item.namespace
+```
+
+Even better: We're creating a manifest per **stage**! This means, whenever we create a new stage inside the values file, the deployment manifests will be created automatically for us.
+
+## Putting it all together
+
+Once everyone of the two above listed files is prepared, we can create the manifest file. This couldn't be simpler as running the command `ytt -f deployment -f values.yaml > deployment.autogen.yaml`.
+
+The finally generated manifest for the prod stage looks like this:
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example-exporter
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: example-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: 9100
+    spec:
+      containers:
+        image: ghcr.io/example-org/example-exporter:0.2
+        env:
+        - name: DATABASE
+          value: prod.example.com
+        imagePullPolicy: Always
+        livenessProbe: null
+        failureThreshold: 3
+        httpGet:
+          path: /metrics
+          port: 9100
+        periodSeconds: 10
+        name: example-exporter
+        ports:
+        - containerPort: 9100
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9100
+          periodSeconds: 5
+        resources: null
+        limits:
+          memory: 32Mi
+          cpu: 0.01
+        requests:
+          memory: 16Mi
+      priorityClassName: low
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: prod
+spec:
+  ports:
+  - name: http
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: example-exporter
+
+```
+
+And this all comes out from just a single command and a little templating. Every time we change something inside the values file, we can recreate the resulting manifest or even better, render this with a CI/CD setup.
+
+If you pair this with a [Taskfile](https://taskfile.dev/) you can watch for any changes, to automatically render the new manifests.
+
+## Conclusion
+
+ytt is a great tool for abstraction, which enables DevOps engineers and developers to automate a lot of their Kubernetes work. If you pair this powerful tool with CI/CD you can easily speed up your deployments, while lowering the entry burden for new developers.

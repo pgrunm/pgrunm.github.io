@@ -1,3 +1,4 @@
 hugo.exe
 resources/
 .hugo_build.lock
+static/code/ytt/.task/checksum/ytt

@@ -1,6 +1,6 @@
 ---
 title: "Kubernetes templating with Carvel ytt"
-date: 2023-07-25T13:35:33+02:00
+date: 2023-06-25T13:35:33+02:00
 draft: false
 tags: [kubernetes, yaml, cncf]
 ---

@@ -1,7 +1,7 @@
 ---
 title: "Automating Kubernetes operating system updates with Kured, kOps and Flatcar"
-date: 2023-08-02T10:40:30+02:00
-draft: true
+date: 2023-07-15T10:40:30+02:00
+draft: false
 tags: [kubernetes, cncf, security, flatcar, kops]
 ---
 
@@ -28,40 +28,53 @@ Kured looks for a file, that says the servers needs to rebooted like `/var/run/r
 
 ### Installation and configuration of Kured
 
-If you want to install Kured, it's the easiest way to install it with Helm. 
+If you want to install Kured, it's the easiest way to install it with Helm. But first, we're going to prepare the configuration for Kured. Some noteworthy settings are:
 
-<!-- TODO: Helm installation -->
+- We want to allow reboots only between 8 to 15 UTC
+- Allow reboots only within Mondays to Thursdays
+- Add a notification url
+- Add settings for the automatic release of the lock, as described [here](https://kured.dev/docs/operation/#automatic-unlock)
+- Add labels and annotations to the nodes, see [here](https://kured.dev/docs/configuration/)
 
-Once you successfully deployed Kured's daemonset, we can start looking at the configuration.
+The overall values file will look like this:
 
 ```yaml
-# When to finish the reboot window (default "23:59")
-endTime: "15" 
-# Schedule reboots only on these days (default [mo-sun])
-rebootDays: [mon, tue, wed, thu] 
-# Notification URL with the syntax as following: 
-# https://containrrr.dev/shoutrrr/services/overview/
-notifyUrl: "https://webhook.example.com" 
-# only reboot after this time (default "0:00")
-startTime: "8" 
-# time-zone to use (valid zones from "time" golang package)
-timeZone: "UTC" 
-# log format specified as text or json, defaults to text
-logFormat: "text"
-# How long to hold the lock after rebooting:
-lockReleaseDelay: 5m
-# Automatically release the lock after 30 mins if anything went wrong
-lockTtl: 30m
-
-# Add annotations to the nodes
-annotateNodes: true
-# Labels, see 
-# https://kured.dev/docs/configuration/#adding-node-labels-before-and-after-reboots
-preRebootNodeLabels: [kured=needs-updates]
-postRebootNodeLabels: [kured=finished-updates]
+configuration:
+    # When to finish the reboot window (default "23:59")
+    endTime: "15" 
+    # Schedule reboots only on these days (default [mo-sun])
+    rebootDays: [mon, tue, wed, thu] 
+    # Notification URL with the syntax as following: 
+    # https://containrrr.dev/shoutrrr/services/overview/
+    notifyUrl: "https://webhook.example.com" 
+    # only reboot after this time (default "0:00")
+    startTime: "8" 
+    # time-zone to use (valid zones from "time" golang package)
+    timeZone: "UTC" 
+    # log format specified as text or json, defaults to text
+    logFormat: "text"
+    # How long to hold the lock after rebooting:
+    lockReleaseDelay: 5m
+    # Automatically release the lock after 30 mins if anything went wrong
+    lockTtl: 30m
+    # Add annotations to the nodes
+    annotateNodes: true
+    # Labels, see 
+    # https://kured.dev/docs/configuration/#adding-node-labels-before-and-after-reboots
+    preRebootNodeLabels: [kured=needs-updates]
+    postRebootNodeLabels: [kured=finished-updates]
 ```
 
 These values allow us to configure Kured as we want, when installing it with Helm. You can find more information on the Kured [installation page](https://kured.dev/docs/).
+
+Finally, we want to install Kured with Helm. To do so just simply run
+
+```shell
+helm repo add kubereboot https://kubereboot.github.io/charts
+helm install my-release kubereboot/kured
+```
+
+That's it! You've successfully installed Kured!🥳
 
 ## Using Kured together with kOps and Flatcar
 
@@ -75,9 +88,11 @@ I'm not explaining in this post, how to create a new kOps managed Kubernetes clu
 updatePolicy: external
 ```
 
-kOps used to write in their [documentation](https://kops.sigs.k8s.io/operations/updates_and_upgrades/), that they're managing OS updates for Flatcar, but this was removed in an earlier update.
+kOps used to write in their [documentation](https://kops.sigs.k8s.io/operations/images/#security-updates), that they're managing OS updates for Flatcar, but this was removed in an earlier update, but is still inside their documentation.
 
 Once you configured your nodegroup to use an external policy, we're done with the kOps part and the Kured configuration is in place, we finally can test it.
+
+>**Hint**: You may have to run a [rolling update](https://kops.sigs.k8s.io/operations/rolling-update/) of your cluster with the `kops rolling-update cluster` command.
 
 Simply create a file with `touch /var/run/reboot-required` on any Kubernetes node and watch the reboot magic happen.
 

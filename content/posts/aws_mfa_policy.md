@@ -1,8 +1,8 @@
 ---
-title: "Enforcing an AWS MFA Policy"
-date: 2023-03-25T16:34:16+01:00
+title: "Enforcing an AWS MFA Policy and limiting access"
+date: 2022-08-25T16:34:16+01:00
 draft: true
-tags: [security, AWS]
+tags: [security, aws, iam]
 ---
 
 ## Introduction
@@ -15,7 +15,7 @@ Maybe you followed several IT news websites and you can read from time to time a
 
 This is especially useful in AWS, as you can protect user accounts with an easy setup and minimal loss in convenience but a big security gain. Unfortunately by default a user does not have permission to add or edit it's own MFA device. So how can we enable this?
 
-## Deep dive into IAM policies
+## Deep dive into enforcing 2FA with an IAM policy
 
 <!-- Bla bla bla to policies -->
 

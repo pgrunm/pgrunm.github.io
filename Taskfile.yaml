@@ -8,7 +8,10 @@ vars:
 tasks:
   default:
     desc: Runs Hugo in development mode.
+    vars:
+      # Configures the port to be used.
+      port: 13130
     cmds:
-      - cmd: hugo serve -b "http://localhost:1313" -DEF
+      - cmd: hugo serve -b "http://localhost" -DEF -p {{.port}}
         ignore_error: true
       - defer: rm .hugo_build.lock

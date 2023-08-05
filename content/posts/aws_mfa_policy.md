@@ -19,6 +19,145 @@ This is especially useful in AWS, as you can protect user accounts with an easy 
 
 <!-- Bla bla bla to policies -->
 
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowViewAccountInfo",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetAccountPasswordPolicy",
+        "iam:GetAccountSummary",
+        "iam:ListVirtualMFADevices"
+      ],
+      "Resource": [
+        "arn:aws:iam::orga_id:user/$${aws:username}",
+        "arn:aws:iam::orga_id:mfa/*"
+      ]
+    },
+    {
+      "Sid": "AllowManageOwnPasswords",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ChangePassword",
+        "iam:GetUser"
+      ],
+      "Resource": "arn:aws:iam::orga_id:user/$${aws:username}"
+    },
+    {
+      "Sid": "AllowManageOwnAccessKeys",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:ListAccessKeys",
+        "iam:UpdateAccessKey"
+      ],
+      "Resource": "arn:aws:iam::orga_id:user/$${aws:username}"
+    },
+    {
+      "Sid": "AllowManageOwnSigningCertificates",
+      "Effect": "Allow",
+      "Action": [
+        "iam:DeleteSigningCertificate",
+        "iam:ListSigningCertificates",
+        "iam:UpdateSigningCertificate",
+        "iam:UploadSigningCertificate"
+      ],
+      "Resource": "arn:aws:iam::orga_id:user/$${aws:username}"
+    },
+    {
+      "Sid": "AllowManageOwnSSHPublicKeys",
+      "Effect": "Allow",
+      "Action": [
+        "iam:DeleteSSHPublicKey",
+        "iam:GetSSHPublicKey",
+        "iam:ListSSHPublicKeys",
+        "iam:UpdateSSHPublicKey",
+        "iam:UploadSSHPublicKey"
+      ],
+      "Resource": "arn:aws:iam::orga_id:user/$${aws:username}"
+    },
+    {
+      "Sid": "AllowManageOwnGitCredentials",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceSpecificCredential",
+        "iam:DeleteServiceSpecificCredential",
+        "iam:ListServiceSpecificCredentials",
+        "iam:ResetServiceSpecificCredential",
+        "iam:UpdateServiceSpecificCredential"
+      ],
+      "Resource": "arn:aws:iam::orga_id:user/$${aws:username}"
+    },
+    {
+      "Sid": "AllowManageOwnUserMFA",
+      "Effect": "Allow",
+      "Action": [
+        "iam:DeactivateMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ListMFADevices",
+        "iam:ResyncMFADevice"
+      ],
+      "Resource": "arn:aws:iam::orga_id:user/$${aws:username}"
+    },
+    {
+      "Sid": "AllowUserToCreateVirtualMFADevice",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateVirtualMFADevice",
+        "iam:DeleteVirtualMFADevice"
+      ],
+      "Resource": "arn:aws:iam::orga_id:mfa/*"
+    },
+    {
+      "Sid": "AllowUserToDeactivateTheirOwnMFAOnlyWhenUsingMFA",
+      "Effect": "Allow",
+      "Action": [
+        "iam:DeactivateMFADevice"
+      ],
+      "Resource": [
+        "arn:aws:iam::orga_id:user/$${aws:username}"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        }
+      }
+    },
+    {
+      "Sid": "BlockMostAccessUnlessSignedInWithMFA",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:ChangePassword",
+        "iam:CreateVirtualMFADevice",
+        "iam:DeleteVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:GetUser",
+        "iam:ListMFADevices",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:ResyncMFADevice",
+        "sts:GetSessionToken"
+      ],
+      "Resource": [
+        "arn:aws:iam::orga_id:user/$${aws:username}",
+        "arn:aws:iam::orga_id:mfa/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "false",
+          "aws:ViaAWSService": "false"
+        }
+      }
+    }
+  ]
+}
+```
+
+>Hint: You have to replace `orga_id` with your own organization ID.
+
 ## Disabling other services
 
 ## Conclusion

@@ -30,7 +30,7 @@ As I use the Nginx webserver fairly often this became my first idea to find a so
 <!-- Problem: Windows -->
 The problem now is, that the OS we used was Windows. So we had to compile the code for Windows. Any code from Github. In a production environment. Mhh, not a good idea. In the end I tried a few around and ended up with this Nginx config file:
 
-```apacheconf
+```nginx
 http {
     server {
         listen 80;
@@ -113,7 +113,10 @@ The second way we tried was using Apache httpd as forward proxy, as this comes w
 
 # Intermediate configuration
 SSLProtocol             all -SSLv3 -TLSv1 -TLSv1.1
-SSLCipherSuite          ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+SSLCipherSuite          ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:\
+    ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:\
+    ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:\
+    DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
 SSLHonorCipherOrder     off
 SSLSessionTickets       off
 ```

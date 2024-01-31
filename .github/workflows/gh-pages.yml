@@ -22,7 +22,7 @@ jobs:
           extended: true
 
       # Cache all built files.
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: /tmp/hugo_cache
           key: ${{ runner.os }}-hugomod-${{ hashFiles('**/go.sum') }}

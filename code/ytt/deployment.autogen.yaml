@@ -1,0 +1,218 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example-exporter
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: example-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: 9100
+    spec:
+      containers:
+        image: ghcr.io/example-org/example-exporter:0.2
+        env:
+        - name: DATABASE
+          value: dev.example.com
+        imagePullPolicy: Always
+        livenessProbe: null
+        failureThreshold: 3
+        httpGet:
+          path: /metrics
+          port: 9100
+        periodSeconds: 10
+        name: example-exporter
+        ports:
+        - containerPort: 9100
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9100
+          periodSeconds: 5
+        resources: null
+        limits:
+          memory: 32Mi
+          cpu: 0.01
+        requests:
+          memory: 16Mi
+      priorityClassName: low
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: qa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example-exporter
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: example-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: 9100
+    spec:
+      containers:
+        image: ghcr.io/example-org/example-exporter:0.2
+        env:
+        - name: DATABASE
+          value: qa.example.com
+        imagePullPolicy: Always
+        livenessProbe: null
+        failureThreshold: 3
+        httpGet:
+          path: /metrics
+          port: 9100
+        periodSeconds: 10
+        name: example-exporter
+        ports:
+        - containerPort: 9100
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9100
+          periodSeconds: 5
+        resources: null
+        limits:
+          memory: 32Mi
+          cpu: 0.01
+        requests:
+          memory: 16Mi
+      priorityClassName: low
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example-exporter
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: example-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: 9100
+    spec:
+      containers:
+        image: ghcr.io/example-org/example-exporter:0.2
+        env:
+        - name: DATABASE
+          value: prod.example.com
+        imagePullPolicy: Always
+        livenessProbe: null
+        failureThreshold: 3
+        httpGet:
+          path: /metrics
+          port: 9100
+        periodSeconds: 10
+        name: example-exporter
+        ports:
+        - containerPort: 9100
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9100
+          periodSeconds: 5
+        resources: null
+        limits:
+          memory: 32Mi
+          cpu: 0.01
+        requests:
+          memory: 16Mi
+      priorityClassName: low
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: dev
+spec:
+  ports:
+  - name: http
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: example-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: qa
+spec:
+  ports:
+  - name: http
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: example-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: example-exporter
+    team: devops
+  name: example-exporter
+  namespace: prod
+spec:
+  ports:
+  - name: http
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: example-exporter

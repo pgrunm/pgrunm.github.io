@@ -1,0 +1,33 @@
+#@data/values
+---
+app_name: example-exporter
+prioritiy_class: low
+metrics:
+  scrape: true
+  port: 9100
+  path: /metrics
+labels:
+  team: devops
+resources:
+  mem_limit: 32Mi
+  mem_requests: 16Mi
+  cpu_limit: 0.01
+stages:
+  - name: dev
+    namespace: dev
+    variables:
+      database: dev.example.com
+    replicas: 1
+    version: 0.2
+  - name: qa
+    namespace: qa
+    variables:
+      database: qa.example.com
+    replicas: 1
+    version: 0.2
+  - name: prod
+    namespace: prod
+    variables:
+      database: prod.example.com
+    replicas: 1
+    version: 0.2

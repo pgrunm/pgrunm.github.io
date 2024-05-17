@@ -1,0 +1,12 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  ytt:
+    desc: Renders the Kubernetes manifests for the blog post
+    cmds:
+      - ytt -f deployment -f values.yaml > deployment.autogen.yaml
+    sources:
+      - "deployment/*.yaml"
+      - "values.yaml"

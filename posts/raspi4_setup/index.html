@@ -1,0 +1,188 @@
+<!doctype html><html lang=en><head><title>Setting up the new Raspberry Pi 4 with Ansible · Engineering Blog
+</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><meta name=author content="Pascal Grundmeier"><meta name=description content="Managing my new Raspberry Pi with Ansible."><meta name=keywords content="blog,devops engineer,site reliability engineer"><meta name=twitter:card content="summary"><meta name=twitter:title content="Setting up the new Raspberry Pi 4 with Ansible"><meta name=twitter:description content="Managing my new Raspberry Pi with Ansible."><meta property="og:url" content="https://pgrunm.github.io/posts/raspi4_setup/"><meta property="og:site_name" content="Engineering Blog"><meta property="og:title" content="Setting up the new Raspberry Pi 4 with Ansible"><meta property="og:description" content="Managing my new Raspberry Pi with Ansible."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-03-28T18:45:07+01:00"><meta property="article:modified_time" content="2020-03-28T18:45:07+01:00"><meta property="article:tag" content="Ansible"><meta property="article:tag" content="Raspberry Pi"><meta property="article:tag" content="Linux"><link rel=canonical href=https://pgrunm.github.io/posts/raspi4_setup/><link rel=preload href="https://pgrunm.github.io/fonts/forkawesome-webfont.woff2?v=1.2.0" as=font type=font/woff2 crossorigin><link rel=stylesheet href=https://pgrunm.github.io/css/coder.min.0669b62fc2c181a12a4ba10be9984e385c9a5e83dc7cb7ae3759ad0b98d7e8b2.css integrity="sha256-Bmm2L8LBgaEqS6EL6ZhOOFyaXoPcfLeuN1mtC5jX6LI=" crossorigin=anonymous media=screen><link rel=stylesheet href=https://pgrunm.github.io/css/coder-dark.min.f6534b0b446b75d9b6ad77a97d43ede2ddaeff1b6e2361fb7198d6f8fcb7f83f.css integrity="sha256-9lNLC0Rrddm2rXepfUPt4t2u/xtuI2H7cZjW+Py3+D8=" crossorigin=anonymous media=screen><link rel=icon type=image/png href=https://pgrunm.github.io/img/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=https://pgrunm.github.io/images/favicon-16x16.png sizes=16x16><link rel=apple-touch-icon href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=apple-touch-icon sizes=180x180 href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=manifest href=https://pgrunm.github.io/site.webmanifest><link rel=mask-icon href=https://pgrunm.github.io/images/safari-pinned-tab.svg color=#5bbad5><meta name=generator content="Hugo 0.128.2"></head><body class="preload-transitions colorscheme-auto"><div class=float-container><a id=dark-mode-toggle class=colorscheme-toggle><i class="fa fa-adjust fa-fw" aria-hidden=true></i></a></div><main class=wrapper><nav class=navigation><section class=container><a class=navigation-title href=https://pgrunm.github.io/>Engineering Blog
+</a><input type=checkbox id=menu-toggle>
+<label class="menu-button float-right" for=menu-toggle><i class="fa fa-bars fa-fw" aria-hidden=true></i></label><ul class=navigation-list><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/>Home</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/posts/>Articles</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/about/>About Me</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/contact/>Contact</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/index.xml>RSS</a></li></ul></section></nav><div class=content><section class="container post"><article><header><div class=post-title><h1 class=title><a class=title-link href=https://pgrunm.github.io/posts/raspi4_setup/>Setting up the new Raspberry Pi 4 with Ansible</a></h1></div><div class=post-meta><div class=date><span class=posted-on><i class="fa fa-calendar" aria-hidden=true></i>
+<time datetime=2020-03-28T18:45:07+01:00>March 28, 2020
+</time></span><span class=reading-time><i class="fa fa-clock-o" aria-hidden=true></i>
+5-minute read</span></div><div class=tags><i class="fa fa-tag" aria-hidden=true></i>
+<span class=tag><a href=https://pgrunm.github.io/tags/ansible/>Ansible</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/raspberry-pi/>Raspberry Pi</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/linux/>Linux</a></span></div></div></header><div class=post-content><p>Since June 2019 the new Raspberry Pi 4 is available to buy. It features much more memory (up to 4 GiB), a Gigabit Ethernet port and two USB 3 ports. So there is a lot of power to compute with, but before we can start playing with it, we have to set it up.</p><p>One more thing to say: I don&rsquo;t want to manage my Pi by CLI but with Ansible. So any setting or command I&rsquo;ll have to use will be implemented by using an Ansible playbook.</p><h2 id=preparing-the-raspi>Preparing the Raspi
+<a class=heading-link href=#preparing-the-raspi><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>As Linux servers are supposed to be used with the commandline I&rsquo;m using no GUI on my Pi but <a href=https://www.raspberrypi.org/downloads/raspbian/ class=external-link target=_blank rel=noopener>Raspbian Lite</a>. This small image only contains most basic software to run the Raspi. The last thing we have to do is writing the image to an sd card like describe <a href=https://www.raspberrypi.org/documentation/installation/installing-images/ class=external-link target=_blank rel=noopener>here</a>.</p><p>I want to enable SSH by default at startup. To do this I had to create a file called <code>ssh</code> on <code>/boot</code>. By doing this the SSH daemon is automatically started on startup.</p><h2 id=configuring-some-basic-settings>Configuring some basic settings
+<a class=heading-link href=#configuring-some-basic-settings><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>To be able to configure settings with Ansible one way to manage my Pi is to add it&rsquo;s IP address to my hosts file which could like this:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Yaml data-lang=Yaml><span style=display:flex><span>---
+</span></span><span style=display:flex><span><span style=color:#f92672>all</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>vars</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ansible_ssh_user</span>: <span style=color:#ae81ff>pascal</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>user_ssh_pub_key</span>: <span style=color:#e6db74>&#34;{{ lookup(&#39;file&#39;,&#39;~/ssh_key_raspi&#39;) }}&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>children</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>pis</span>:
+</span></span><span style=display:flex><span>      <span style=color:#75715e># List of Raspberry Pis</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>hosts</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>192.168.200.150</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>new_pis</span>:
+</span></span><span style=display:flex><span>      <span style=color:#75715e># Contains only new Pis</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>hosts</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>192.168.200.151</span>:  
+</span></span></code></pre></td></tr></table></div></div><p>You may notice that there are two different groups: <code>pis</code> and <code>new_pis</code>. This is because the new Raspberry Pi is still naked and there is no public SSH key deposited which allows seamless remote access.</p><p>When I created my new SSH key pair I looked for technical recommendations from German Federal Office for Information Security (or BSI in German). They recommend in the directive <a href=https://www.bsi.bund.de/EN/Publications/TechnicalGuidelines/tr02102/tr02102_node.html class=external-link target=_blank rel=noopener>TR-02102-4</a> things like</p><ul><li>use only SSH version 2</li><li>enable only public key authentication</li><li>the use of a key algorithm like ecdsa-sha2-* (which you according to current knowledge can use until at least 2025)</li></ul><h3 id=making-the-pi-managed-by-ssh-key>Making the Pi managed by SSH key
+<a class=heading-link href=#making-the-pi-managed-by-ssh-key><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>Like mentioned before I generated already before an SSH key like described <a href=https://wiki.archlinux.org/index.php/SSH_keys#Ed25519 class=external-link target=_blank rel=noopener>here</a>. With this playbook I created a the new user <code>pascal</code> for me, copied the ssh onto the remote machine and deleted the default user pi for security reasons.</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Yaml data-lang=Yaml><span style=display:flex><span>---
+</span></span><span style=display:flex><span>- <span style=color:#f92672>hosts</span>: <span style=color:#ae81ff>new_pis</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>tasks</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Add the user &#39;pascal&#39;</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>user</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pascal</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Set authorized key taken from file</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>authorized_key</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>user</span>: <span style=color:#e6db74>&#34;pascal&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>state</span>: <span style=color:#ae81ff>present</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>key</span>: <span style=color:#e6db74>&#34;{{ lookup(&#39;file&#39;, &#39;/home/pascal/pub&#39;) }}&#34;</span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Remove the default user &#39;pi&#39;</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>user</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pi</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ensure</span>: <span style=color:#ae81ff>absent</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ansible_ssh_user</span>: <span style=color:#ae81ff>pascal</span>
+</span></span></code></pre></td></tr></table></div></div><p>Now I already can move the IP address in the <code>hosts.yml</code> file from <code>new_pis</code> to <code>pis</code> as it&rsquo;s now accessible with my SSH key.</p><h3 id=some-more-configuration>Some more configuration
+<a class=heading-link href=#some-more-configuration><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>There are more settings that I need to configure like</p><ul><li>Enable passwordless sudo for my account</li><li>Disable password based authentication (so only public key based authentication is enabled)</li><li>Disable root login</li></ul><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Yaml data-lang=Yaml><span style=display:flex><span>---
+</span></span><span style=display:flex><span>- <span style=color:#f92672>hosts</span>: <span style=color:#ae81ff>new_pis</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># You may need to add --ask-become-pass -b on the command line</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>become</span>: <span style=color:#66d9ef>yes</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>tasks</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Allow passwordless sudo for my account</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>lineinfile</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>path</span>: <span style=color:#ae81ff>/etc/sudoers</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>state</span>: <span style=color:#ae81ff>present</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>line</span>: <span style=color:#e6db74>&#34;pascal ALL=(ALL) NOPASSWD: ALL&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>validate</span>: <span style=color:#e6db74>&#34;visudo -cf %s&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Disallow password authentication</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>lineinfile</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>path</span>: <span style=color:#ae81ff>/etc/ssh/sshd_config</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>regexp</span>: <span style=color:#e6db74>&#34;^PasswordAuthentication&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>line</span>: <span style=color:#e6db74>&#34;PasswordAuthentication no&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>state</span>: <span style=color:#ae81ff>present</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>notify</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>Restart ssh</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Disable root login</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>lineinfile</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>path</span>: <span style=color:#ae81ff>/etc/ssh/sshd_config</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>regexp</span>: <span style=color:#e6db74>&#34;^PermitRootLogin&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>line</span>: <span style=color:#e6db74>&#34;PermitRootLogin no&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>state</span>: <span style=color:#ae81ff>present</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Restart ssh daemon</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>service</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>sshd</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>state</span>: <span style=color:#ae81ff>restarted</span>
+</span></span></code></pre></td></tr></table></div></div><p>While running this I of course had to add my sudo password with the <a href=https://docs.ansible.com/ansible/latest/user_guide/become.html#become-command-line-options class=external-link target=_blank rel=noopener>commandline parameter</a> <code>-K</code> to supply the password to become root.</p><p>When all the settings are implemented the SSH daemon is restarted by a <a href=https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html#handlers-running-operations-on-change class=external-link target=_blank rel=noopener>handler</a>.</p><h3 id=getting-the-latest-updates>Getting the latest updates
+<a class=heading-link href=#getting-the-latest-updates><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>One last step before the Pi is ready to serve it&rsquo;s duty is installing the latest updates. You can do this of course by running an <code>apt update; apt upgrade -y</code> on the commandline, but like I mentioned earlier I don&rsquo;t want to run commands by hand. So I created another playbook for this purpose:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Yaml data-lang=Yaml><span style=display:flex><span>---
+</span></span><span style=display:flex><span>- <span style=color:#f92672>hosts</span>: <span style=color:#ae81ff>pis</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>become</span>: <span style=color:#66d9ef>yes</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>tasks</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Ping the Raspi</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ping</span>:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># See: https://docs.ansible.com/ansible/latest/modules/apt_module.html#examples</span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Run apt update</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>apt</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>update_cache</span>: <span style=color:#66d9ef>yes</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>become</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Run apt upgrade</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>apt</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#e6db74>&#34;*&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>state</span>: <span style=color:#ae81ff>latest</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>become</span>: <span style=color:#66d9ef>true</span>
+</span></span></code></pre></td></tr></table></div></div><p>You may noticed that I&rsquo;m using here the <a href=https://docs.ansible.com/ansible/latest/modules/apt_module.html class=external-link target=_blank rel=noopener>apt module</a> because I&rsquo;m using raspbian. This allows me to run <code>apt update</code> and <code>apt upgrade</code>.</p><p>There is also the generic <a href=https://docs.ansible.com/ansible/latest/modules/package_module.html class=external-link target=_blank rel=noopener>package module</a> which allows you to write playbooks that work with any package manager. Unfortunately this doesn&rsquo;t allow you to just get the latest updates so I&rsquo;m using the apt module here.</p><h2 id=conclusion>Conclusion
+<a class=heading-link href=#conclusion><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>The new Raspberry Pi 4 is now prepared and ready for computing. It can be completely managed by Ansible to do things like installing updates or software, managing users or even installing applications (which of course will happen later).</p><p>I hope you enjoyed reading this article and have a nice day!</p></div><footer></footer></article><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css integrity=sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0 crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js integrity=sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4 crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous onload='renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}]})'></script></section></div><section class=container><center>© 2019 - 2024 | Built with &#9829;&#xfe0f; by Pascal Grundmeier - DevOps engineering at scale.</center></section></main><script src=https://pgrunm.github.io/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script></body></html>

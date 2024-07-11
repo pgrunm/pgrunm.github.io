@@ -1,0 +1,184 @@
+<!doctype html><html lang=en><head><title>Establishing proxy support for an application without proxy support · Engineering Blog
+</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><meta name=author content="Pascal Grundmeier"><meta name=description content="Trying to use Nginx as forward proxy, but failing."><meta name=keywords content="blog,devops engineer,site reliability engineer"><meta name=twitter:card content="summary"><meta name=twitter:title content="Establishing proxy support for an application without proxy support"><meta name=twitter:description content="Trying to use Nginx as forward proxy, but failing."><meta property="og:url" content="https://pgrunm.github.io/posts/nginx_forward_proxy/"><meta property="og:site_name" content="Engineering Blog"><meta property="og:title" content="Establishing proxy support for an application without proxy support"><meta property="og:description" content="Trying to use Nginx as forward proxy, but failing."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-07-07T18:45:07+01:00"><meta property="article:modified_time" content="2020-07-07T18:45:07+01:00"><meta property="article:tag" content="Windows"><meta property="article:tag" content="Apache"><meta property="article:tag" content="Forward Proxy"><meta property="article:tag" content="Nginx"><link rel=canonical href=https://pgrunm.github.io/posts/nginx_forward_proxy/><link rel=preload href="https://pgrunm.github.io/fonts/forkawesome-webfont.woff2?v=1.2.0" as=font type=font/woff2 crossorigin><link rel=stylesheet href=https://pgrunm.github.io/css/coder.min.0669b62fc2c181a12a4ba10be9984e385c9a5e83dc7cb7ae3759ad0b98d7e8b2.css integrity="sha256-Bmm2L8LBgaEqS6EL6ZhOOFyaXoPcfLeuN1mtC5jX6LI=" crossorigin=anonymous media=screen><link rel=stylesheet href=https://pgrunm.github.io/css/coder-dark.min.f6534b0b446b75d9b6ad77a97d43ede2ddaeff1b6e2361fb7198d6f8fcb7f83f.css integrity="sha256-9lNLC0Rrddm2rXepfUPt4t2u/xtuI2H7cZjW+Py3+D8=" crossorigin=anonymous media=screen><link rel=icon type=image/png href=https://pgrunm.github.io/img/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=https://pgrunm.github.io/images/favicon-16x16.png sizes=16x16><link rel=apple-touch-icon href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=apple-touch-icon sizes=180x180 href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=manifest href=https://pgrunm.github.io/site.webmanifest><link rel=mask-icon href=https://pgrunm.github.io/images/safari-pinned-tab.svg color=#5bbad5><meta name=generator content="Hugo 0.128.2"></head><body class="preload-transitions colorscheme-auto"><div class=float-container><a id=dark-mode-toggle class=colorscheme-toggle><i class="fa fa-adjust fa-fw" aria-hidden=true></i></a></div><main class=wrapper><nav class=navigation><section class=container><a class=navigation-title href=https://pgrunm.github.io/>Engineering Blog
+</a><input type=checkbox id=menu-toggle>
+<label class="menu-button float-right" for=menu-toggle><i class="fa fa-bars fa-fw" aria-hidden=true></i></label><ul class=navigation-list><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/>Home</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/posts/>Articles</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/about/>About Me</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/contact/>Contact</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/index.xml>RSS</a></li></ul></section></nav><div class=content><section class="container post"><article><header><div class=post-title><h1 class=title><a class=title-link href=https://pgrunm.github.io/posts/nginx_forward_proxy/>Establishing proxy support for an application without proxy support</a></h1></div><div class=post-meta><div class=date><span class=posted-on><i class="fa fa-calendar" aria-hidden=true></i>
+<time datetime=2020-07-07T18:45:07+01:00>July 7, 2020
+</time></span><span class=reading-time><i class="fa fa-clock-o" aria-hidden=true></i>
+5-minute read</span></div><div class=tags><i class="fa fa-tag" aria-hidden=true></i>
+<span class=tag><a href=https://pgrunm.github.io/tags/windows/>Windows</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/apache/>Apache</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/forward-proxy/>Forward Proxy</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/nginx/>Nginx</a></span></div></div></header><div class=post-content><h2 id=introduction>Introduction
+<a class=heading-link href=#introduction><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>Hello again dear reader :-)! Some time passed since my last blog post, because I have been busy with University, but now since exams are done, I have some more time for creating the latest post. Recently I stumbled upon an application that needed internet access but unfortunately didn&rsquo;t support a proxy server yet. At that point of the project we had to find a way to allow this application to communicate directly with the internet, but without having a direct connection to the internet. This is the topic of this post.</p><h2 id=overview-of-the-application>Overview of the application
+<a class=heading-link href=#overview-of-the-application><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>The application itself is a HTTP webservice, that allows you to send requests to it which are then forwarded to an SaaS application within the internet. Let&rsquo;s image we&rsquo;re calling our webservice without a configured proxy and this would be the result:</p><p><img src=https://pgrunm.github.io/images/nginx-proxy/communication_wo_proxy.png alt="This is an image" title="Visualization of the architecture without a proxy."></p><p>This is actually a pretty simple schematic of the environment, because I removed any firewalls as well as the proxy server of course. This is the way the developer expected the application to work. Unfortunately it could not access the internet without the proxy server.</p><h2 id=trying-to-internet-access-with-an-own-solution>Trying to internet access with an own solution
+<a class=heading-link href=#trying-to-internet-access-with-an-own-solution><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><h3 id=usage-of-nginx-as-forward-proxy>Usage of Nginx as forward proxy
+<a class=heading-link href=#usage-of-nginx-as-forward-proxy><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>As I use the Nginx webserver fairly often this became my first idea to find a solution. Nginx works quite well as a reverse proxy, so why not use it as forward proxy then? If you search around the internet for any articles for this. I found a post on <a href=https://superuser.com/q/604352 class=external-link target=_blank rel=noopener>Stackexchange</a>, where several answers were made. One replied to use Squid instead, because it does not work with Nginx at all, another replied you can compile it on your own with custom module from Github.</p><p>The problem now is, that the OS we used was Windows. So we had to compile the code for Windows. Any code from Github. In a production environment. Mhh, not a good idea. In the end I tried a few around and ended up with this Nginx config file:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nginx data-lang=nginx><span style=display:flex><span><span style=color:#66d9ef>http</span> {
+</span></span><span style=display:flex><span>    <span style=color:#f92672>server</span> {
+</span></span><span style=display:flex><span>        <span style=color:#f92672>listen</span> <span style=color:#ae81ff>80</span>;
+</span></span><span style=display:flex><span>        <span style=color:#f92672>listen</span> <span style=color:#ae81ff>443</span> <span style=color:#e6db74>ssl</span> <span style=color:#e6db74>http2</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Path to server certificate
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#f92672>ssl_certificate</span> <span style=color:#e6db74>example.com.crt</span>;
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ssl_certificate_key</span> <span style=color:#e6db74>example.com.key</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Log file directory
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#f92672>access_log</span> <span style=color:#e6db74>logs/forward_proxy.access.log</span>;
+</span></span><span style=display:flex><span>        <span style=color:#f92672>error_log</span>  <span style=color:#e6db74>logs/forward_proxy.error.log</span> <span style=color:#e6db74>debug</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>location</span> <span style=color:#e6db74>/</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># proxy (default)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#f92672>set</span> $proxy_host <span style=color:#e6db74>&#34;</span>$http_host&#34;;
+</span></span><span style=display:flex><span>            <span style=color:#f92672>set</span> $url <span style=color:#e6db74>&#34;</span>$scheme://$http_host$request_uri&#34;;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Set Proxy header
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#f92672>proxy_set_header</span>        <span style=color:#e6db74>Host</span>            $http_host;
+</span></span><span style=display:flex><span>            <span style=color:#f92672>proxy_set_header</span>        <span style=color:#e6db74>X-Forwarded-For</span> $proxy_add_x_forwarded_for;
+</span></span><span style=display:flex><span>            <span style=color:#f92672>proxy_set_header</span>        <span style=color:#e6db74>X-Scheme</span>        $scheme;
+</span></span><span style=display:flex><span>            <span style=color:#f92672>proxy_set_header</span> <span style=color:#e6db74>X-Script-Name</span> $request_uri;  
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>proxy_redirect</span> <span style=color:#66d9ef>off</span>;
+</span></span><span style=display:flex><span>            <span style=color:#f92672>proxy_set_header</span> <span style=color:#e6db74>Host</span> $proxy_host;
+</span></span><span style=display:flex><span>            <span style=color:#f92672>proxy_set_header</span> <span style=color:#e6db74>X-Forwarded-Host</span> $http_host;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>proxy_set_header</span> <span style=color:#e6db74>Request-URL</span> <span style=color:#e6db74>&#34;</span>$scheme://$http_host$request_uri&#34;;
+</span></span><span style=display:flex><span>            <span style=color:#f92672>set</span> $test_req <span style=color:#e6db74>&#34;http://</span>$http_host$uri$is_args$args;<span style=color:#f92672>&#34;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Forward the request to the proxy
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#f92672>proxy_pass</span> <span style=color:#e6db74>&#34;http://123.45.67.89:8080http://</span>$http_host$uri$is_args$args&#34;;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>Unfortunately this did not help at all. I used Wireshark to follow the network traffic and saw did some troubleshooting with curl. When I used curl to connect to the proxy server you could see it used the <a href=https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT class=external-link target=_blank rel=noopener>HTTP CONNECT method</a>. When we tried to use Nginx we just saw a simple <code>HTTP GET</code> instead.</p><p>At that point I realised we were on the wrong track and had to try something different.</p><h3 id=a-different-approach-with-a-real-forward-proxy>A different approach with a real forward proxy
+<a class=heading-link href=#a-different-approach-with-a-real-forward-proxy><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>The second way we tried was using Apache httpd as forward proxy, as this comes with builtin forward proxy support on Windows. The config file itself was quite long, so I&rsquo;m just listing the most interesting lines here:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-apacheconf data-lang=apacheconf><span style=display:flex><span><span style=color:#f92672>&lt;VirtualHost</span> <span style=color:#e6db74>*:443</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    SSLEngine <span style=color:#66d9ef>on</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># DocumentRoot &#34;${SRVROOT}/htdocs&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Path to server certificates</span>
+</span></span><span style=display:flex><span>    SSLCertificateFile      <span style=color:#e6db74>&#34;${SRVROOT}\conf\ssl\example.com.crt&#34;</span>
+</span></span><span style=display:flex><span>    SSLCertificateKeyFile   <span style=color:#e6db74>&#34;${SRVROOT}\conf\ssl\example.com.key&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Forward Proxy</span>
+</span></span><span style=display:flex><span>    ProxyRequests <span style=color:#66d9ef>On</span>
+</span></span><span style=display:flex><span>    ProxyVia <span style=color:#66d9ef>On</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;Proxy</span> <span style=color:#e6db74>&#34;/&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Require host internal.example.com</span>
+</span></span><span style=display:flex><span>        Require host server.internal.org
+</span></span><span style=display:flex><span>        Require ip <span style=color:#ae81ff>127.0.0.1</span>
+</span></span><span style=display:flex><span>        Require ip <span style=color:#ae81ff>192.168.42.54</span>
+</span></span><span style=display:flex><span>        ProxyPass <span style=color:#e6db74>&#34;https://example.com&#34;</span> nocanon
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;/Proxy&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Pass all requests on to the internal proxy, except for:</span>
+</span></span><span style=display:flex><span>    NoProxy <span style=color:#e6db74>&#34;*.internal.org&#34;</span> <span style=color:#e6db74>&#34;192.168.42.0/24&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Forward HTTP and HTTPS requests</span>
+</span></span><span style=display:flex><span>    ProxyRemote <span style=color:#e6db74>&#34;*&#34;</span> <span style=color:#e6db74>&#34;http://123.45.67.89:8080&#34;</span>
+</span></span><span style=display:flex><span>    ProxyRemote <span style=color:#e6db74>&#34;*&#34;</span> <span style=color:#e6db74>&#34;https://123.45.67.89:8080&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># enable HTTP/2, if available</span>
+</span></span><span style=display:flex><span>    Protocols h2 http/1.1
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;/VirtualHost&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Intermediate configuration</span>
+</span></span><span style=display:flex><span>SSLProtocol             <span style=color:#66d9ef>all</span> -SSLv3 -TLSv1 -TLSv1.1
+</span></span><span style=display:flex><span>SSLCipherSuite          ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:\
+</span></span><span style=display:flex><span>    ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:\
+</span></span><span style=display:flex><span>    ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:\
+</span></span><span style=display:flex><span>    DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+</span></span><span style=display:flex><span>SSLHonorCipherOrder     <span style=color:#66d9ef>off</span>
+</span></span><span style=display:flex><span>SSLSessionTickets       <span style=color:#66d9ef>off</span>
+</span></span></code></pre></td></tr></table></div></div><p>The Apache webserver was configured to listen on the TCP ports 80 and 443 for default HTTPS. The idea was to forward any requests on both of these ports to the actual SaaS provider on the internet, because the server&rsquo;s webservice was listening on port 8080. To make the server think it&rsquo;s calling the service on the internet we had to edit the local hosts file like this:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-ini data-lang=ini><span style=display:flex><span><span style=color:#a6e22e>127.0.0.1  example.com</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>::1        example.com</span>
+</span></span></code></pre></td></tr></table></div></div><p>At that point my solution was working quite well. Any traffic the server received on port 80 was forwarded to the proxy server. The next step was to configure the service accordingly to make it work with the proxy solution. But as soon as we started to try out our server we the following message: <code>Invalid certificate for website example.com</code>. What happened here?</p><h3 id=analysis-of-the-server-certificate>Analysis of the server certificate
+<a class=heading-link href=#analysis-of-the-server-certificate><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>When I took a look on the actual certificate of the website, I saw that it is using Certificate Transparency:</p><p><img src=https://pgrunm.github.io/images/nginx-proxy/cert.png alt="This is an image" title="Screenshot of the certificate with enabled certificate transparency"></p><p>The cool thing about certificate transparency is, that nobody else can issue a certificate for your website without knowing it has been issued. This is a default policy since March 2018 as they are required to support this as mentioned by <a href=https://developer.mozilla.org/en-US/docs/Web/Security/Certificate_Transparency class=external-link target=_blank rel=noopener>Mozilla</a>.</p><p>So in the end we were able to create proxy support for the application, but it didn&rsquo;t help us because of certificate transparency. :-)</p></div><footer></footer></article><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css integrity=sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0 crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js integrity=sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4 crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous onload='renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}]})'></script></section></div><section class=container><center>© 2019 - 2024 | Built with &#9829;&#xfe0f; by Pascal Grundmeier - DevOps engineering at scale.</center></section></main><script src=https://pgrunm.github.io/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script></body></html>

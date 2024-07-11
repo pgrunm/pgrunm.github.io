@@ -1,0 +1,536 @@
+<!doctype html><html lang=en><head><title>Developing Flutter apps with cloud infrastructure: Part 2 · Engineering Blog
+</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><meta name=author content="Pascal Grundmeier"><meta name=description content="Creating a Jenkins pipeline in AWS."><meta name=keywords content="blog,devops engineer,site reliability engineer"><meta name=twitter:card content="summary"><meta name=twitter:title content="Developing Flutter apps with cloud infrastructure: Part 2"><meta name=twitter:description content="Creating a Jenkins pipeline in AWS."><meta property="og:url" content="https://pgrunm.github.io/posts/infrastructure_flutter_part2/"><meta property="og:site_name" content="Engineering Blog"><meta property="og:title" content="Developing Flutter apps with cloud infrastructure: Part 2"><meta property="og:description" content="Creating a Jenkins pipeline in AWS."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2021-06-21T23:00:00+01:00"><meta property="article:modified_time" content="2021-06-21T23:00:00+01:00"><meta property="article:tag" content="DevOps"><meta property="article:tag" content="Flutter"><meta property="article:tag" content="AWS"><meta property="article:tag" content="Jenkins"><meta property="article:tag" content="Terraform"><link rel=canonical href=https://pgrunm.github.io/posts/infrastructure_flutter_part2/><link rel=preload href="https://pgrunm.github.io/fonts/forkawesome-webfont.woff2?v=1.2.0" as=font type=font/woff2 crossorigin><link rel=stylesheet href=https://pgrunm.github.io/css/coder.min.0669b62fc2c181a12a4ba10be9984e385c9a5e83dc7cb7ae3759ad0b98d7e8b2.css integrity="sha256-Bmm2L8LBgaEqS6EL6ZhOOFyaXoPcfLeuN1mtC5jX6LI=" crossorigin=anonymous media=screen><link rel=stylesheet href=https://pgrunm.github.io/css/coder-dark.min.f6534b0b446b75d9b6ad77a97d43ede2ddaeff1b6e2361fb7198d6f8fcb7f83f.css integrity="sha256-9lNLC0Rrddm2rXepfUPt4t2u/xtuI2H7cZjW+Py3+D8=" crossorigin=anonymous media=screen><link rel=icon type=image/png href=https://pgrunm.github.io/img/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=https://pgrunm.github.io/images/favicon-16x16.png sizes=16x16><link rel=apple-touch-icon href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=apple-touch-icon sizes=180x180 href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=manifest href=https://pgrunm.github.io/site.webmanifest><link rel=mask-icon href=https://pgrunm.github.io/images/safari-pinned-tab.svg color=#5bbad5><meta name=generator content="Hugo 0.128.2"></head><body class="preload-transitions colorscheme-auto"><div class=float-container><a id=dark-mode-toggle class=colorscheme-toggle><i class="fa fa-adjust fa-fw" aria-hidden=true></i></a></div><main class=wrapper><nav class=navigation><section class=container><a class=navigation-title href=https://pgrunm.github.io/>Engineering Blog
+</a><input type=checkbox id=menu-toggle>
+<label class="menu-button float-right" for=menu-toggle><i class="fa fa-bars fa-fw" aria-hidden=true></i></label><ul class=navigation-list><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/>Home</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/posts/>Articles</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/about/>About Me</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/contact/>Contact</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/index.xml>RSS</a></li></ul></section></nav><div class=content><section class="container post"><article><header><div class=post-title><h1 class=title><a class=title-link href=https://pgrunm.github.io/posts/infrastructure_flutter_part2/>Developing Flutter apps with cloud infrastructure: Part 2</a></h1></div><div class=post-meta><div class=date><span class=posted-on><i class="fa fa-calendar" aria-hidden=true></i>
+<time datetime=2021-06-21T23:00:00+01:00>June 21, 2021
+</time></span><span class=reading-time><i class="fa fa-clock-o" aria-hidden=true></i>
+9-minute read</span></div><div class=tags><i class="fa fa-tag" aria-hidden=true></i>
+<span class=tag><a href=https://pgrunm.github.io/tags/devops/>DevOps</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/flutter/>Flutter</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/aws/>AWS</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/jenkins/>Jenkins</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/terraform/>Terraform</a></span></div></div></header><div class=post-content><h2 id=introduction>Introduction
+<a class=heading-link href=#introduction><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>Hello again dear reader. This is the 2nd part of the AWS Flutter development series. The first part covered how to create the required infrastructure in AWS with Terraform. This part will cover how the the required Jenkins containers (master/agent) are set up. Let&rsquo;s dive into it.</p><h2 id=container-setups>Container setups
+<a class=heading-link href=#container-setups><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><h3 id=jenkins-master-container>Jenkins Master container
+<a class=heading-link href=#jenkins-master-container><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>The jenkins master container is the brain of the entire application. It controls and schedules new ECS Jenkins agents if necessary. Every piece of configuration is populated from environment variables as you can see in the dockerfile for the Jenkins master:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-dockerfile data-lang=dockerfile><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> jenkins/jenkins:2.263.1-lts</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Install the Jenkins Plugins from the plugins text file</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># like described in the docs:</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># https://github.com/jenkinsci/docker#plugin-installation-manager-cli-preview</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> code/docker/Test/plugins.txt /usr/share/jenkins/ref/plugins.txt<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> /usr/local/bin/install-plugins.sh &lt; /usr/share/jenkins/ref/plugins.txt<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Copy the groovy config file</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> code/docker/Test/initialConfig.groovy /usr/share/jenkins/ref/init.groovy.d/initialConfigs.groovy<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> code/docker/Test/jenkins.yaml /usr/share/jenkins/ref/jenkins.yaml<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Create the app pipeline from config files</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> code/docker/Test/helloWorld.xml /usr/share/jenkins/ref/jobs/Hello-World/config.xml<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> code/docker/Test/appConfig.xml /usr/share/jenkins/ref/jobs/Flutter-App/config.xml<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Disable the installation wizard</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> JAVA_OPTS -Djenkins.install.runSetupWizard<span style=color:#f92672>=</span>false<span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></td></tr></table></div></div><p>If you want to have a look at the source code you can find it again inside the <a href=https://github.com/pgrunm/aws_jenkins_flutter class=external-link target=_blank rel=noopener>Github repository</a> I created earlier for this series. The dockerfile basically copies the required configuration files into the container so they are stored inside the container.</p><p>Another idea would be to store the configuration inside environment variables (if it&rsquo;s supported) or even better: to store the configuration in a volume, which the container can mount. With this you don&rsquo;t have to create a new container every time you change the config. Instead you just have to reboot your container.</p><table><thead><tr><th>File</th><th>Content</th></tr></thead><tbody><tr><td>plugins.txt</td><td>Contains a list with plugins to be installed</td></tr><tr><td>initialConfigs.groovy</td><td>Groovy settings</td></tr><tr><td>jenkins.yaml</td><td>Jenkins main configuration file</td></tr><tr><td>Helloworld.xml and appconfig.xml</td><td>Pipeline configuration files</td></tr></tbody></table><p>The table above contains a description of every file that is copied inside the Jenkins master container.</p><h3 id=jenkins-configuration-file>Jenkins configuration file
+<a class=heading-link href=#jenkins-configuration-file><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>The most important file is the <code>jenks.yaml</code> file. It contains the settings to configure the Jenkins master and look like this</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">70
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">71
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">72
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">73
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">74
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">75
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">76
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">77
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">78
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yml data-lang=yml><span style=display:flex><span><span style=color:#f92672>jenkins</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>slaveAgentPort</span>: <span style=color:#ae81ff>50000</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># System Message which is displayed on the Dashboard.</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>systemMessage</span>: <span style=color:#ae81ff>Jenkins Master for FOM Bachelor Thesis</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>agentProtocols</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#ae81ff>JNLP4-connect</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>authorizationStrategy</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>loggedInUsersCanDoAnything</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>allowAnonymousRead</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>remotingSecurity</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>enabled</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>securityRealm</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>local</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>allowsSignup</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e># Create the local administrator account with data from environment variables</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>users</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>id</span>: <span style=color:#ae81ff>${JENKINS_ADMIN_USERNAME}</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>password</span>: <span style=color:#ae81ff>${JENKINS_ADMIN_PASSWORD}</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>clouds</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>ecs</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>credentialsId</span>: <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># ECS Cluster ARN</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>cluster</span>: <span style=color:#ae81ff>${ECS_CLUSTER_NAME}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>ecs-cloud</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Environment Variable for the AWS Region e. g. eu-central-1</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>regionName</span>: <span style=color:#ae81ff>${AWS_REGION_NAME}</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Local Jenkins URL, also populated by environment variable,</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e># default is master.jenkins.local</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>jenkinsUrl</span>: <span style=color:#ae81ff>${JENKINS_URL}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>tunnel</span>: <span style=color:#ae81ff>${LOCAL_JENKINS_URL}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>templates</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>assignPublicIp</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Amount of CPU Resources, configured in Terraform files</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>cpu</span>: <span style=color:#ae81ff>${CPU_AMOUNT}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>memoryReservation</span>: <span style=color:#ae81ff>${MEMORY_AMOUNT}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>executionRole</span>: <span style=color:#ae81ff>${EXECUTION_ROLE_ARN}</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Name of the Docker image used -&gt; also environment file</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>image</span>: <span style=color:#ae81ff>${IMAGE_NAME}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>label</span>: <span style=color:#ae81ff>Flutter</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>launchType</span>: <span style=color:#ae81ff>FARGATE</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>logDriver</span>: <span style=color:#ae81ff>awslogs</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Logging Options for AWS Cloudwatch,</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># populated mainly by environment variables.</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>logDriverOptions</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>awslogs-group</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>value</span>: <span style=color:#ae81ff>${LOG_GROUP_NAME}</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>awslogs-region</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>value</span>: <span style=color:#ae81ff>${AWS_REGION}</span>
+</span></span><span style=display:flex><span>              - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>awslogs-stream-prefix</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>value</span>: <span style=color:#ae81ff>jenkins-agent</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>securityGroups</span>: <span style=color:#ae81ff>${SECURITY_GROUP_IDS}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>subnets</span>: <span style=color:#ae81ff>${SUBNETS}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>templateName</span>: <span style=color:#ae81ff>jenkins-flutter-agent</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># AWS Fargate platform version, &#34;Latest&#34; refers to 1.3.0 but 1.4.0 is the latest -&gt; environment variable.</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>platformVersion</span>: <span style=color:#e6db74>&#34;${PLATFORM_VERSION}&#34;</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># List of environment variables for the Jenkins Agent.</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Contains stuff like AWS CLI environment variables etc.</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># which are populated in the variables.tf file.</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Has to be changed, because environment variables are displayed,</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># see https://preview.tinyurl.com/y3eg6kav.</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Like AWS Configuration as Code Secrets Manager Plugin: </span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e># https://plugins.jenkins.io/configuration-as-code-secret-ssm/</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>environments</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>name</span>: <span style=color:#e6db74>&#34;AWS_ACCESS_KEY_ID&#34;</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>value</span>: <span style=color:#e6db74>&#34;${AWS_ACCESS_KEY_ID}&#34;</span>
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>name</span>: <span style=color:#e6db74>&#34;AWS_SECRET_ACCESS_KEY&#34;</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>value</span>: <span style=color:#e6db74>&#34;${AWS_SECRET_ACCESS_KEY}&#34;</span>
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>name</span>: <span style=color:#e6db74>&#34;AWS_DEFAULT_REGION&#34;</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>value</span>: <span style=color:#e6db74>&#34;${AWS_DEFAULT_REGION}&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>aws</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>s3</span>:
+</span></span><span style=display:flex><span>    <span style=color:#75715e># AWS S3 Bucket Name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>container</span>: <span style=color:#e6db74>&#34;${BUCKET_NAME}&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>disableSessionToken</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Bucket Folder</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>prefix</span>: <span style=color:#e6db74>&#34;${S3_FOLDER_PREFIX}/&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>useHttp</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>usePathStyleUrl</span>: <span style=color:#66d9ef>false</span>
+</span></span></code></pre></td></tr></table></div></div><p>The file above contains the settings to configure the Jenkins master. The settings are take from environment variables, which are created by the Terraform files from <a href=https://pgrunm.github.io/posts/infrastructure_flutter_part1>part 1</a>. Just to mention a few important points:</p><ul><li>Admin username and password are configured from environmental variables</li><li>Logging is configured</li><li>Storage for artifacts for the Jenkins S3 plugin is configured and</li><li>configuration for test environment is stored (just a hint: store this in in AWS secrets manager or something like, because environmental variables are <strong>visible</strong> from outside!)</li></ul><p>The other files are not that interesting, but you can find them inside the <a href=https://github.com/pgrunm/aws_jenkins_flutter/tree/master/docker class=external-link target=_blank rel=noopener>Github repository</a>.</p><h3 id=jenkins-agent-configuration-file>Jenkins Agent configuration file
+<a class=heading-link href=#jenkins-agent-configuration-file><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>On the other hand the is the configuration for the Jenkins agent. The following listing shows the content of the dockerfile:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-dockerfile data-lang=dockerfile><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> jenkins/inbound-agent:4.6-1-alpine</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Prerequisites</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Required for Alpine Linux as it contains no curl</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Ruby stuff required for installation of Fastlane</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>USER</span><span style=color:#e6db74> root</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> apk --no-cache add curl ruby ruby-dev g++ make openssl<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Install lcov, currently in Edge branch, testing repo</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> apk --no-cache add lcov <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>--repository<span style=color:#f92672>=</span>http://dl-cdn.alpinelinux.org/alpine/edge/testing<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Required Settings for Fastlane to work</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> LC_ALL<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en_US.UTF-8&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> LANG<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;en_US.UTF-8&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Install the Fastlane Ruby package</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> gem install fastlane -N<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Create a new user</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>USER</span><span style=color:#e6db74> jenkins</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /home/jenkins</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Install Android stuff</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> mkdir -p Android/sdk/<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> ANDROID_SDK_ROOT /home/jenkins/Android/Sdk<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> mkdir -p .android <span style=color:#f92672>&amp;&amp;</span> touch .android/repositories.cfg<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Setup Android SDK</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> wget -q -O sdk-tools.zip <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> unzip sdk-tools.zip <span style=color:#f92672>&amp;&amp;</span> rm sdk-tools.zip<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> mv -v cmdline-tools Android/sdk/cmdline-tools/<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> cd Android/sdk/cmdline-tools/bin <span style=color:#f92672>&amp;&amp;</span> yes | <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>./sdkmanager --sdk_root<span style=color:#f92672>=</span>$ANDROID_SDK_ROOT --licenses<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> cd Android/sdk/cmdline-tools/bin <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>./sdkmanager --sdk_root<span style=color:#f92672>=</span>$ANDROID_SDK_ROOT <span style=color:#e6db74>&#34;build-tools;29.0.3&#34;</span> <span style=color:#e6db74>&#34;patcher;v4&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span><span style=color:#e6db74>&#34;platform-tools&#34;</span> <span style=color:#e6db74>&#34;platforms;android-29&#34;</span> <span style=color:#e6db74>&#34;sources;android-29&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Download Flutter SDK</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> git clone https://github.com/flutter/flutter.git<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Update Path Variable with all installed tools</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> PATH <span style=color:#e6db74>&#34;</span>$PATH<span style=color:#e6db74>:/home/jenkins/flutter/bin&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Add Slyph Package for Integration Tests</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> flutter pub global activate sylph <span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> PATH <span style=color:#e6db74>&#34;</span>$PATH<span style=color:#e6db74>:/home/jenkins/.pub-cache/bin&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># Run basic checks to download Dark SDK</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> flutter doctor<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> fastlane actions<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> sylph --help<span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></td></tr></table></div></div><p>The dockerfile is based on an official Alpine Linux Jenkins agent image, where all the required Jenkins parts are already installed. Other requirements are:</p><ul><li>software required for development and installation purposes</li><li><code>lcov</code> for test coverage</li><li>language and encoding settings (utf-8)</li><li><a href=https://fastlane.tools/ class=external-link target=_blank rel=noopener>Fastlane</a> for deployment in the Google Play and Apple app store</li><li>then the Android SDK is installed inside <code>/home/jenkins/Android/Sdk</code></li><li>afterwards the Flutter SDK is installed (needed for compilation) and last but not least</li><li><a href=https://pub.dev/packages/sylph class=external-link target=_blank rel=noopener>Sylph</a> is installed for device testing on AWS</li></ul><p>As this dockerfile is mainly for testing and demonstration purposes there are also a few debugging commandlets to verify the succesful installation of the tools.</p><h2 id=description-of-the-workflow>Description of the workflow
+<a class=heading-link href=#description-of-the-workflow><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>The idea behind this kind of architecture is pretty simple but effective. As soon as you create the infrastructure with Terraform, the Jenkins master is started once everything is created. The master is configured with environmental variables and a config file where to find the Jenkinsfile with instructions. The Jenkinsfile looks like this:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">100
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">101
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">102
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">103
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">104
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-groovy data-lang=groovy><span style=display:flex><span>pipeline <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    agent <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Tells the pipeline to use an AWS ECS agent,
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#75715e>// because of the used label.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        label <span style=color:#e6db74>&#39;Flutter&#39;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    stages <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>        stage<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Build&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            steps <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                echo <span style=color:#e6db74>&#39;Building..&#39;</span>            
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// Build the Android App
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                dir<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;testing_codelab/step_07/&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                    sh <span style=color:#e6db74>&#39;flutter build appbundle&#39;</span>
+</span></span><span style=display:flex><span>                    
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Archive the Build Artifact on the 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>// created S3 Bucket.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    archiveArtifacts <span style=color:#e6db74>&#34;/build/app/outputs/bundle/release/*&#34;</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        stage<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Check the Code Quality&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            steps <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                dir<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;testing_codelab/step_07/&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Check the Code Quality
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>// Flutter Analyze performs a static analysis
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>// See here for more details: 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>// https://flutter.dev/docs/reference/flutter-cli#flutter-commands
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    echo <span style=color:#e6db74>&#39;Doing Code Quality Tests&#39;</span>
+</span></span><span style=display:flex><span>                    sh <span style=color:#e6db74>&#39;flutter analyze&#39;</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        stage<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Unit Tests&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            steps <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                dir<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;testing_codelab/step_07/&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Run all unit tests
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    echo <span style=color:#e6db74>&#39;Doing Unit Tests&#39;</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Point to Unit Test directory
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#75715e>// Coverage is reported to ./coverage/lcov.info
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    sh <span style=color:#e6db74>&#39;flutter test --coverage -r expanded test/models/&#39;</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Reporting of Unit Test Coverage
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    sh <span style=color:#e6db74>&#39;lcov -l codecov/*&#39;</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        stage<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Widget Tests&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            steps <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                dir<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;testing_codelab/step_07/&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Run all Widget tests on the code
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    echo <span style=color:#e6db74>&#39;Running Widget Tests&#39;</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Runs Widget tests on all files
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    sh <span style=color:#e6db74>&#39;flutter test --coverage -r expanded test/&#39;</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Reporting of Widget Test Coverage
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    sh <span style=color:#e6db74>&#39;lcov -l codecov/*&#39;</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        stage<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Integration Tests&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            steps <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                dir<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;testing_codelab/step_07/&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// Running integration tests on AWS Devicefarm, uses Sylph and a config file
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    echo <span style=color:#e6db74>&#39;Running integrations tests on AWS Devicefarm...&#39;</span>
+</span></span><span style=display:flex><span>                    sh <span style=color:#e6db74>&#39;sylph -c sylph.yaml&#39;</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        stage<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Beta Deployment&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Deploy as Beta Release if no there is no git tag
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            when <span style=color:#f92672>{</span> 
+</span></span><span style=display:flex><span>                not <span style=color:#f92672>{</span> 
+</span></span><span style=display:flex><span>                    buildingTag<span style=color:#f92672>()</span> 
+</span></span><span style=display:flex><span>                <span style=color:#f92672>}</span> 
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            steps <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                echo <span style=color:#e6db74>&#39;Deploying beta version to Play Store&#39;</span>
+</span></span><span style=display:flex><span>                sh <span style=color:#e6db74>&#39;fastlane beta&#39;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        stage<span style=color:#f92672>(</span><span style=color:#e6db74>&#39;Release Deployment&#39;</span><span style=color:#f92672>)</span> <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Deploy as full release if the current commit contains a git tag
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#75715e>// Captures screenshots and uploads the app file to playstore
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            when <span style=color:#f92672>{</span> 
+</span></span><span style=display:flex><span>                buildingTag<span style=color:#f92672>()</span> 
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>            steps <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>                echo <span style=color:#e6db74>&#39;Deploying release version to Play Store&#39;</span>
+</span></span><span style=display:flex><span>                sh <span style=color:#e6db74>&#39;fastlane playstore&#39;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>    post <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Post Tasks
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        always <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>            echo <span style=color:#e6db74>&#34;None so far...&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>}</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>The cool part from this now on is, you create the infrastructure automatically and as soon everything is available the pipeline is ready to run. The instructions what to do the master gets from the Jenkinsfile which is inside a Github repository (in this case). If you start a build job, the master start an agent, the agent downloads the entire repository and executes everything as listed inside the Jenkinsfile.</p><h2 id=overview-of-the-pipeline>Overview of the pipeline
+<a class=heading-link href=#overview-of-the-pipeline><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>The pipeline is designed to run in the order as listed inside the Jenkinsfile above:</p><ol><li>Build an Android app from the source code (the version for iOS requires a device with MacOS)</li><li>the next step is to check the code quality and to do tests (this step requires lcov as mentioned before)</li><li>for the last step the build is deployed as beta build, if it contains a tag then it is deployed as productive version to the app stores</li></ol><h2 id=conclusion>Conclusion
+<a class=heading-link href=#conclusion><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>This was the 2nd part of the Flutter AWS series. The next and last part will cover the tests and the deployment process. Thanks for reading!</p></div><footer></footer></article><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css integrity=sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0 crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js integrity=sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4 crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous onload='renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}]})'></script></section></div><section class=container><center>© 2019 - 2024 | Built with &#9829;&#xfe0f; by Pascal Grundmeier - DevOps engineering at scale.</center></section></main><script src=https://pgrunm.github.io/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script></body></html>

@@ -1,0 +1,212 @@
+<!doctype html><html lang=en><head><title>Using Prometheus for application metrics · Engineering Blog
+</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><meta name=author content="Pascal Grundmeier"><meta name=description content="How to implement metrics for a Go application with Prometheus?"><meta name=keywords content="blog,devops engineer,site reliability engineer"><meta name=twitter:card content="summary"><meta name=twitter:title content="Using Prometheus for application metrics"><meta name=twitter:description content="How to implement metrics for a Go application with Prometheus?"><meta property="og:url" content="https://pgrunm.github.io/posts/prometheus_instrumenting/"><meta property="og:site_name" content="Engineering Blog"><meta property="og:title" content="Using Prometheus for application metrics"><meta property="og:description" content="How to implement metrics for a Go application with Prometheus?"><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-03-16T19:33:10+01:00"><meta property="article:modified_time" content="2020-03-16T19:33:10+01:00"><meta property="article:tag" content="Go"><meta property="article:tag" content="Monitoring"><meta property="article:tag" content="Metrics"><meta property="article:tag" content="Prometheus"><link rel=canonical href=https://pgrunm.github.io/posts/prometheus_instrumenting/><link rel=preload href="https://pgrunm.github.io/fonts/forkawesome-webfont.woff2?v=1.2.0" as=font type=font/woff2 crossorigin><link rel=stylesheet href=https://pgrunm.github.io/css/coder.min.0669b62fc2c181a12a4ba10be9984e385c9a5e83dc7cb7ae3759ad0b98d7e8b2.css integrity="sha256-Bmm2L8LBgaEqS6EL6ZhOOFyaXoPcfLeuN1mtC5jX6LI=" crossorigin=anonymous media=screen><link rel=stylesheet href=https://pgrunm.github.io/css/coder-dark.min.f6534b0b446b75d9b6ad77a97d43ede2ddaeff1b6e2361fb7198d6f8fcb7f83f.css integrity="sha256-9lNLC0Rrddm2rXepfUPt4t2u/xtuI2H7cZjW+Py3+D8=" crossorigin=anonymous media=screen><link rel=icon type=image/png href=https://pgrunm.github.io/img/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=https://pgrunm.github.io/images/favicon-16x16.png sizes=16x16><link rel=apple-touch-icon href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=apple-touch-icon sizes=180x180 href=https://pgrunm.github.io/images/apple-touch-icon.png><link rel=manifest href=https://pgrunm.github.io/site.webmanifest><link rel=mask-icon href=https://pgrunm.github.io/images/safari-pinned-tab.svg color=#5bbad5><meta name=generator content="Hugo 0.128.2"></head><body class="preload-transitions colorscheme-auto"><div class=float-container><a id=dark-mode-toggle class=colorscheme-toggle><i class="fa fa-adjust fa-fw" aria-hidden=true></i></a></div><main class=wrapper><nav class=navigation><section class=container><a class=navigation-title href=https://pgrunm.github.io/>Engineering Blog
+</a><input type=checkbox id=menu-toggle>
+<label class="menu-button float-right" for=menu-toggle><i class="fa fa-bars fa-fw" aria-hidden=true></i></label><ul class=navigation-list><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/>Home</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/posts/>Articles</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/about/>About Me</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/contact/>Contact</a></li><li class=navigation-item><a class=navigation-link href=https://pgrunm.github.io/index.xml>RSS</a></li></ul></section></nav><div class=content><section class="container post"><article><header><div class=post-title><h1 class=title><a class=title-link href=https://pgrunm.github.io/posts/prometheus_instrumenting/>Using Prometheus for application metrics</a></h1></div><div class=post-meta><div class=date><span class=posted-on><i class="fa fa-calendar" aria-hidden=true></i>
+<time datetime=2020-03-16T19:33:10+01:00>March 16, 2020
+</time></span><span class=reading-time><i class="fa fa-clock-o" aria-hidden=true></i>
+5-minute read</span></div><div class=tags><i class="fa fa-tag" aria-hidden=true></i>
+<span class=tag><a href=https://pgrunm.github.io/tags/go/>Go</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/monitoring/>Monitoring</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/metrics/>Metrics</a>
+</span><span class=separator>•</span>
+<span class=tag><a href=https://pgrunm.github.io/tags/prometheus/>Prometheus</a></span></div></div></header><div class=post-content><p>One really important aspect of system and application engineering is monitoring. How do you know if your application, script or system is fine? Google for example uses their own software (called <a href=https://landing.google.com/sre/sre-book/chapters/practical-alerting/ class=external-link target=_blank rel=noopener>Borgmon</a>) for monitoring. The open source software Prometheus allows to capture time-series data in order to monitor different statistics of an application like Borgmon does. Let&rsquo;s see how we can do this on our own.</p><h2 id=the-basics-of-prometheus>The basics of Prometheus
+<a class=heading-link href=#the-basics-of-prometheus><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>Some time ago I wrote a <a href=https://github.com/pgrunm/RSS_CLI/tree/master class=external-link target=_blank rel=noopener>small Go application</a> which parses RSS feeds and displays them as a simple html overview with a local webserver. Right now you can see some statistics like the time it took to download and render all feeds inside the console. As this is nice to know it&rsquo;s difficult to monitor this.</p><p>Prometheus allows us to add some code inside our application to add another http listener where the metrics are displayed. As soon as we added this handler we can add different <a href=https://prometheus.io/docs/concepts/metric_types/ class=external-link target=_blank rel=noopener>metric types</a> like counters or gauges.</p><p>To add the webhandler is just had to use the following:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Go data-lang=Go><span style=display:flex><span><span style=color:#75715e>// Adding the Prmetheus HTTP handler
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Handle</span>(<span style=color:#e6db74>&#34;/metrics&#34;</span>, <span style=color:#a6e22e>promhttp</span>.<span style=color:#a6e22e>Handler</span>())
+</span></span><span style=display:flex><span><span style=color:#66d9ef>go</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ListenAndServe</span>(<span style=color:#e6db74>&#34;:2112&#34;</span>, <span style=color:#66d9ef>nil</span>)
+</span></span></code></pre></td></tr></table></div></div><p>Do mind the keyword <code>go</code> here. This ensures that the http handler runs inside a <a href=https://gobyexample.com/goroutines class=external-link target=_blank rel=noopener>Goroutine</a> which is executed asynchronously. By using this routine all requests to the metrics endpoint are handled by this routine without the need to wait for a response. If you would leave the <code>go</code> keyword the 2nd http handler would not be started.</p><p>As soon as you add the http handler some default Golang metrics are exposed like</p><ul><li>Total http responses (statuscode 200, 500 and 503)</li><li>number of Go threads</li><li>seconds since start time</li></ul><p>This is already helpful but doesn&rsquo;t say too much about our application. Let&rsquo;s add our own metrics.</p><h2 id=adding-metrics-for-the-application>Adding metrics for the application
+<a class=heading-link href=#adding-metrics-for-the-application><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h2><p>Before just adding any metrics it&rsquo;s important to ask yourself</p><ul><li>What are the most important parts of the application to be instrumented (e. g. successfully processed input)?</li><li>Is the error rate suddenly increasing?</li><li>Does the (average) response time increase?</li><li>Anything else important you need to monitor?</li></ul><p>If you can answer these questions and implement metrics at these spots it&rsquo;s easy to implement metrics for the most important parts of the applications.</p><h3 id=diving-into-the-code>Diving into the code
+<a class=heading-link href=#diving-into-the-code><i class="fa fa-link" aria-hidden=true title="Link to heading"></i>
+<span class=sr-only>Link to heading</span></a></h3><p>For my RSS CLI I splittet the code in two different files, where one files hold the main function and the other file all necessary functions. To use the Prometheus metrics globally I had to add them inside the global variable space like this:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Go data-lang=Go><span style=display:flex><span><span style=color:#66d9ef>var</span> (
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// This is not the full list but a snapshot.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#75715e>// Prometheus variables for metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>opsProcessed</span> = <span style=color:#a6e22e>promauto</span>.<span style=color:#a6e22e>NewCounter</span>(<span style=color:#a6e22e>prometheus</span>.<span style=color:#a6e22e>CounterOpts</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>: <span style=color:#e6db74>&#34;rss_reader_total_requests&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Help</span>: <span style=color:#e6db74>&#34;The total number of processed events&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>cacheHits</span> = <span style=color:#a6e22e>promauto</span>.<span style=color:#a6e22e>NewCounter</span>(<span style=color:#a6e22e>prometheus</span>.<span style=color:#a6e22e>CounterOpts</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>: <span style=color:#e6db74>&#34;total_number_of_cache_hits&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Help</span>: <span style=color:#e6db74>&#34;The total number of processed events answered by cache&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>rssRequests</span> = <span style=color:#a6e22e>promauto</span>.<span style=color:#a6e22e>NewCounter</span>(<span style=color:#a6e22e>prometheus</span>.<span style=color:#a6e22e>CounterOpts</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>: <span style=color:#e6db74>&#34;total_number_of_rss_requests&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Help</span>: <span style=color:#e6db74>&#34;The total number of requests sent to get rss feeds&#34;</span>,
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// See: https://godoc.org/github.com/prometheus/client_golang/prometheus#Summary
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#a6e22e>responseTime</span> = <span style=color:#a6e22e>prometheus</span>.<span style=color:#a6e22e>NewSummary</span>(<span style=color:#a6e22e>prometheus</span>.<span style=color:#a6e22e>SummaryOpts</span>{
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Name</span>:       <span style=color:#e6db74>&#34;response_time_summary&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Help</span>:       <span style=color:#e6db74>&#34;The sum of response times.&#34;</span>,
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>Objectives</span>: <span style=color:#66d9ef>map</span>[<span style=color:#66d9ef>float64</span>]<span style=color:#66d9ef>float64</span>{<span style=color:#ae81ff>0.5</span>: <span style=color:#ae81ff>0.05</span>, <span style=color:#ae81ff>0.9</span>: <span style=color:#ae81ff>0.01</span>, <span style=color:#ae81ff>0.99</span>: <span style=color:#ae81ff>0.001</span>},
+</span></span><span style=display:flex><span>	})
+</span></span><span style=display:flex><span>)
+</span></span></code></pre></td></tr></table></div></div><p>You can now access these variables from all over the program and also other files. For example, if a request has been processed successfully the program increments the counter <code>opsProcessed</code> by 1 with <code>opsProcessed.Inc()</code>. The full sourcecode for the function looks like this:</p><div class=highlight><div style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">70
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Go data-lang=Go><span style=display:flex><span><span style=color:#75715e>// ParseFeeds allows to get feeds from a site.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>func</span> <span style=color:#a6e22e>ParseFeeds</span>(<span style=color:#a6e22e>siteURL</span>, <span style=color:#a6e22e>proxyURL</span> <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>news</span> <span style=color:#66d9ef>chan</span><span style=color:#f92672>&lt;-</span> <span style=color:#f92672>*</span><span style=color:#a6e22e>gofeed</span>.<span style=color:#a6e22e>Feed</span>) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Measure the execution time of this function
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>duration</span>(<span style=color:#a6e22e>track</span>(<span style=color:#e6db74>&#34;ParseFeeds for site &#34;</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>siteURL</span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// When finished, write it to the channel
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>wg</span>.<span style=color:#a6e22e>Done</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Proxy URL see 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// https://stackoverflow.com/questions/14661511/setting-up-proxy-for-http-client
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>var</span> <span style=color:#a6e22e>client</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Client</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#75715e>// Proxy URL is given
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>if</span> len(<span style=color:#a6e22e>proxyURL</span>) &gt; <span style=color:#ae81ff>0</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>proxyURL</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>url</span>.<span style=color:#a6e22e>Parse</span>(<span style=color:#a6e22e>proxyURL</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>client</span> = <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Client</span>{<span style=color:#a6e22e>Transport</span>: <span style=color:#f92672>&amp;</span><span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Transport</span>{<span style=color:#a6e22e>Proxy</span>: <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>ProxyURL</span>(<span style=color:#a6e22e>proxyURL</span>)}}
+</span></span><span style=display:flex><span>	} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>client</span> = <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>Client</span>{}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>item</span>, <span style=color:#a6e22e>found</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>c</span>.<span style=color:#a6e22e>Get</span>(<span style=color:#a6e22e>siteURL</span>)
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>found</span> {
+</span></span><span style=display:flex><span>		<span style=color:#75715e>//  Type assertion see: https://golangcode.com/convert-interface-to-number/
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>news</span> <span style=color:#f92672>&lt;-</span> <span style=color:#a6e22e>item</span>.(<span style=color:#f92672>*</span><span style=color:#a6e22e>gofeed</span>.<span style=color:#a6e22e>Feed</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#75715e>// Increase the counter for cache hits
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>cacheHits</span>.<span style=color:#a6e22e>Inc</span>()
+</span></span><span style=display:flex><span>	} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>		<span style=color:#75715e>// rate limit the feed parsing
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#f92672>&lt;-</span><span style=color:#a6e22e>throttle</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#a6e22e>rssRequests</span>.<span style=color:#a6e22e>Inc</span>()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Changed this to NewRequest as the golang docs 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#75715e>// says you need this for custom headers
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>req</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>http</span>.<span style=color:#a6e22e>NewRequest</span>(<span style=color:#e6db74>&#34;GET&#34;</span>, <span style=color:#a6e22e>siteURL</span>, <span style=color:#66d9ef>nil</span>)
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>log</span>.<span style=color:#a6e22e>Fatalln</span>(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#75715e>// Set a custom user header because some site block away default crawlers
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>req</span>.<span style=color:#a6e22e>Header</span>.<span style=color:#a6e22e>Set</span>(<span style=color:#e6db74>&#34;User-Agent&#34;</span>, <span style=color:#e6db74>&#34;Golang/RSS_Reader by Warryz&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#75715e>// Get the Feed of the particular website
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#a6e22e>resp</span>, <span style=color:#a6e22e>err</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>Do</span>(<span style=color:#a6e22e>req</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>err</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>			<span style=color:#a6e22e>fmt</span>.<span style=color:#a6e22e>Println</span>(<span style=color:#a6e22e>err</span>)
+</span></span><span style=display:flex><span>		} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>defer</span> <span style=color:#a6e22e>resp</span>.<span style=color:#a6e22e>Body</span>.<span style=color:#a6e22e>Close</span>()
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>resp</span>.<span style=color:#a6e22e>StatusCode</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>200</span> {
+</span></span><span style=display:flex><span>				<span style=color:#75715e>// Read the response and parse it as string
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>				<span style=color:#a6e22e>body</span>, <span style=color:#a6e22e>_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>ioutil</span>.<span style=color:#a6e22e>ReadAll</span>(<span style=color:#a6e22e>resp</span>.<span style=color:#a6e22e>Body</span>)
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>fp</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>gofeed</span>.<span style=color:#a6e22e>NewParser</span>()
+</span></span><span style=display:flex><span>				<span style=color:#a6e22e>feed</span>, <span style=color:#a6e22e>_</span> <span style=color:#f92672>:=</span> <span style=color:#a6e22e>fp</span>.<span style=color:#a6e22e>ParseString</span>(string(<span style=color:#a6e22e>body</span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>				<span style=color:#75715e>// Return the feed with all its items.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>				<span style=color:#66d9ef>if</span> <span style=color:#a6e22e>feed</span> <span style=color:#f92672>!=</span> <span style=color:#66d9ef>nil</span> {
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>c</span>.<span style=color:#a6e22e>Set</span>(<span style=color:#a6e22e>siteURL</span>, <span style=color:#a6e22e>feed</span>, <span style=color:#a6e22e>cache</span>.<span style=color:#a6e22e>DefaultExpiration</span>)
+</span></span><span style=display:flex><span>					<span style=color:#a6e22e>news</span> <span style=color:#f92672>&lt;-</span> <span style=color:#a6e22e>feed</span>
+</span></span><span style=display:flex><span>				}
+</span></span><span style=display:flex><span>			}
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>As you can see we now instrumented our application with several metrics that are now displayed with our 2nd webhandler. Everytime I send a request to the webserver the metrics are now adjusted like how many requests were answered by the cache or had to send a request out to the internet.</p><p>You can find an official example from Prometheus <a href=https://prometheus.io/docs/guides/go-application/ class=external-link target=_blank rel=noopener>here</a>. I also found a <a href="https://docs.google.com/presentation/d/1X1rKozAUuF2MVc1YXElFWq9wkcWv3Axdldl8LOH9Vik/edit#slide=id.g598ef96a6_0_1103" class=external-link target=_blank rel=noopener>presentation of Google&rsquo;s monitoring</a> on the internet, maybe this helps you too. Thanks for reading and I hope you enjoyed the article!</p></div><footer></footer></article><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css integrity=sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0 crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js integrity=sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4 crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous onload='renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}]})'></script></section></div><section class=container><center>© 2019 - 2024 | Built with &#9829;&#xfe0f; by Pascal Grundmeier - DevOps engineering at scale.</center></section></main><script src=https://pgrunm.github.io/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script></body></html>

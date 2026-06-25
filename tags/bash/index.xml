@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bash on System Engineering Blog</title><link>https://pgrunm.github.io/tags/bash/</link><description>Recent content in Bash on System Engineering Blog</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Thu, 13 Feb 2020 14:31:31 +0100</lastBuildDate><atom:link href="https://pgrunm.github.io/tags/bash/index.xml" rel="self" type="application/rss+xml"/><item><title>Building my new blog: Part 2</title><link>https://pgrunm.github.io/posts/building_blog_part2/</link><pubDate>Thu, 13 Feb 2020 14:31:31 +0100</pubDate><guid>https://pgrunm.github.io/posts/building_blog_part2/</guid><description>&lt;p&gt;In the last post I wrote about my considerations about what software to use for my blog, where to host it and how to set it up. This post contains some more techinical details like the git structure and the deployment process. So then let&amp;rsquo;s dive in.&lt;/p&gt;
+&lt;h2 id="the-git-structure"&gt;
+ The git structure
+ &lt;a class="heading-link" href="#the-git-structure"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;The hugo projects mentions in their documentation to use &lt;a href="https://gohugo.io/getting-started/quick-start/" class="external-link" target="_blank" rel="noopener"&gt;a git submodule&lt;/a&gt; for the theme. &lt;a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules" class="external-link" target="_blank" rel="noopener"&gt;Git&lt;/a&gt; explains that you can use this feature to integrate another project into your repository while still getting the latest commits from the other repo.&lt;/p&gt;</description></item></channel></rss>

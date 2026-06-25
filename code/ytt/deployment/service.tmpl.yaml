@@ -1,0 +1,21 @@
+#@ load("@ytt:data", "data")
+
+#@ for item in data.values.stages:
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: #@ data.values.app_name
+    team: #@ data.values.labels.team
+  name: #@ data.values.app_name
+  namespace: #@ item.namespace
+spec:
+  ports:
+    - name: http
+      port: 9100
+      protocol: TCP
+      targetPort: 9100
+  selector:
+    app: #@ data.values.app_name
+#@ end

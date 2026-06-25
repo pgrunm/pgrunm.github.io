@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>GPT on System Engineering Blog</title><link>https://pgrunm.github.io/tags/gpt/</link><description>Recent content in GPT on System Engineering Blog</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sun, 19 Apr 2020 21:45:07 +0100</lastBuildDate><atom:link href="https://pgrunm.github.io/tags/gpt/index.xml" rel="self" type="application/rss+xml"/><item><title>GPT and MBR: Moving from MBR to GPT</title><link>https://pgrunm.github.io/posts/mbr_and_gpt/</link><pubDate>Sun, 19 Apr 2020 21:45:07 +0100</pubDate><guid>https://pgrunm.github.io/posts/mbr_and_gpt/</guid><description>&lt;h2 id="intro"&gt;
+ Intro
+ &lt;a class="heading-link" href="#intro"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;About a year ago I bought a used hard drive from a colleague of mine. This HDD has a size of 3 TiB and is supposed to hold big files like videos, images and some games that are neigher read nor write intensive. Unfortunately I moved from my previous HDD with a Master Boot Record (MBR) and kept using the MBR.&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on System Engineering Blog</title><link>https://pgrunm.github.io/posts/</link><description>Recent content in Posts on System Engineering Blog</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 15 Jul 2023 10:40:30 +0200</lastBuildDate><atom:link href="https://pgrunm.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Automating Kubernetes operating system updates with Kured, kOps and Flatcar</title><link>https://pgrunm.github.io/posts/kured/</link><pubDate>Sat, 15 Jul 2023 10:40:30 +0200</pubDate><guid>https://pgrunm.github.io/posts/kured/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello everyone, it&amp;rsquo;s time for a new post.&lt;/p&gt;
+&lt;p&gt;As you may know, operating system updates are a crucial part of IT security. In cloud environments you may have up to thousands of virtual servers, where no engineer can manually update these servers. So what to do, if you want to automate these operating system updates?&lt;/p&gt;
+&lt;h2 id="the-solution"&gt;
+ The solution
+ &lt;a class="heading-link" href="#the-solution"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Fortunately, there is a great solution to this problem. This solution is called &lt;a href="https://kured.dev/" class="external-link" target="_blank" rel="noopener"&gt;Kured&lt;/a&gt;. Kured enables you as a Kubernetes administrator to automate operating system updates. You can choose between different settings like&lt;/p&gt;</description></item><item><title>Kubernetes templating with Carvel ytt</title><link>https://pgrunm.github.io/posts/ytt/</link><pubDate>Sun, 25 Jun 2023 13:35:33 +0200</pubDate><guid>https://pgrunm.github.io/posts/ytt/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello again, this is another blog post about a great CNCF tool. If you&amp;rsquo;ve ever worked with Kubernetes manifests, you probably know that editing or creating them by hand can be very painful.&lt;/p&gt;
+&lt;p&gt;On the other side, you as a developer or engineer don&amp;rsquo;t want to edit a lot in these manifests. It is usually better to edit the necessary parts and leave the rest as it was before.&lt;/p&gt;</description></item><item><title>Developing Flutter apps with cloud infrastructure: Part 2</title><link>https://pgrunm.github.io/posts/infrastructure_flutter_part2/</link><pubDate>Mon, 21 Jun 2021 23:00:00 +0100</pubDate><guid>https://pgrunm.github.io/posts/infrastructure_flutter_part2/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello again dear reader. This is the 2nd part of the AWS Flutter development series. The first part covered how to create the required infrastructure in AWS with Terraform. This part will cover how the the required Jenkins containers (master/agent) are set up. Let&amp;rsquo;s dive into it.&lt;/p&gt;
+&lt;h2 id="container-setups"&gt;
+ Container setups
+ &lt;a class="heading-link" href="#container-setups"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;h3 id="jenkins-master-container"&gt;
+ Jenkins Master container
+ &lt;a class="heading-link" href="#jenkins-master-container"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;The jenkins master container is the brain of the entire application. It controls and schedules new ECS Jenkins agents if necessary. Every piece of configuration is populated from environment variables as you can see in the dockerfile for the Jenkins master:&lt;/p&gt;</description></item><item><title>Developing Flutter apps with cloud infrastructure: Part 1</title><link>https://pgrunm.github.io/posts/infrastructure_flutter_part1/</link><pubDate>Wed, 21 Apr 2021 21:12:43 +0100</pubDate><guid>https://pgrunm.github.io/posts/infrastructure_flutter_part1/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello again! It&amp;rsquo;s been a while, because I finally finished my studied and I&amp;rsquo;m now Bachelor of Science :-). Anyway, I wanted to create a blog post of my bachelor thesis and this is going to be the one.&lt;/p&gt;
+&lt;p&gt;The topic of my thesis was how to speed up development performance when developing Flutter applications with cloud infrastructure. The infrastrcture was completely created with Terraform in AWS. The architecture itself is based on a sample &lt;a href="https://github.com/aws-samples/jenkins-on-aws" class="external-link" target="_blank" rel="noopener"&gt;published by AWS itself&lt;/a&gt;. It consists of:&lt;/p&gt;</description></item><item><title>Establishing proxy support for an application without proxy support</title><link>https://pgrunm.github.io/posts/nginx_forward_proxy/</link><pubDate>Tue, 07 Jul 2020 18:45:07 +0100</pubDate><guid>https://pgrunm.github.io/posts/nginx_forward_proxy/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello again dear reader :-)! Some time passed since my last blog post, because I have been busy with University, but now since exams are done, I have some more time for creating the latest post. Recently I stumbled upon an application that needed internet access but unfortunately didn&amp;rsquo;t support a proxy server yet. At that point of the project we had to find a way to allow this application to communicate directly with the internet, but without having a direct connection to the internet. This is the topic of this post.&lt;/p&gt;</description></item><item><title>GPT and MBR: Moving from MBR to GPT</title><link>https://pgrunm.github.io/posts/mbr_and_gpt/</link><pubDate>Sun, 19 Apr 2020 21:45:07 +0100</pubDate><guid>https://pgrunm.github.io/posts/mbr_and_gpt/</guid><description>&lt;h2 id="intro"&gt;
+ Intro
+ &lt;a class="heading-link" href="#intro"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;About a year ago I bought a used hard drive from a colleague of mine. This HDD has a size of 3 TiB and is supposed to hold big files like videos, images and some games that are neigher read nor write intensive. Unfortunately I moved from my previous HDD with a Master Boot Record (MBR) and kept using the MBR.&lt;/p&gt;</description></item><item><title>Setting up the new Raspberry Pi 4 with Ansible</title><link>https://pgrunm.github.io/posts/raspi4_setup/</link><pubDate>Sat, 28 Mar 2020 18:45:07 +0100</pubDate><guid>https://pgrunm.github.io/posts/raspi4_setup/</guid><description>&lt;p&gt;Since June 2019 the new Raspberry Pi 4 is available to buy. It features much more memory (up to 4 GiB), a Gigabit Ethernet port and two USB 3 ports. So there is a lot of power to compute with, but before we can start playing with it, we have to set it up.&lt;/p&gt;
+&lt;p&gt;One more thing to say: I don&amp;rsquo;t want to manage my Pi by CLI but with Ansible. So any setting or command I&amp;rsquo;ll have to use will be implemented by using an Ansible playbook.&lt;/p&gt;</description></item><item><title>Using Prometheus for application metrics</title><link>https://pgrunm.github.io/posts/prometheus_instrumenting/</link><pubDate>Mon, 16 Mar 2020 19:33:10 +0100</pubDate><guid>https://pgrunm.github.io/posts/prometheus_instrumenting/</guid><description>&lt;p&gt;One really important aspect of system and application engineering is monitoring. How do you know if your application, script or system is fine? Google for example uses their own software (called &lt;a href="https://landing.google.com/sre/sre-book/chapters/practical-alerting/" class="external-link" target="_blank" rel="noopener"&gt;Borgmon&lt;/a&gt;) for monitoring. The open source software Prometheus allows to capture time-series data in order to monitor different statistics of an application like Borgmon does. Let&amp;rsquo;s see how we can do this on our own.&lt;/p&gt;
+&lt;h2 id="the-basics-of-prometheus"&gt;
+ The basics of Prometheus
+ &lt;a class="heading-link" href="#the-basics-of-prometheus"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Some time ago I wrote a &lt;a href="https://github.com/pgrunm/RSS_CLI/tree/master" class="external-link" target="_blank" rel="noopener"&gt;small Go application&lt;/a&gt; which parses RSS feeds and displays them as a simple html overview with a local webserver. Right now you can see some statistics like the time it took to download and render all feeds inside the console. As this is nice to know it&amp;rsquo;s difficult to monitor this.&lt;/p&gt;</description></item><item><title>Scaling expriments with different AWS services</title><link>https://pgrunm.github.io/posts/aws_scaling_comparison/</link><pubDate>Wed, 26 Feb 2020 19:33:10 +0100</pubDate><guid>https://pgrunm.github.io/posts/aws_scaling_comparison/</guid><description>&lt;p&gt;As part of my studies I had to write an assigment in the module electronic business. I decided to develop some kind of dummy REST api application where I could try different architectures. The reason for me to try this out was to see how the performance changes over time if you increase the load.&lt;/p&gt;
+&lt;p&gt;I decided to use Go for this project, because it was designed for scalable cloud architectures and if you compile your code you just get a single binary file which you just have to upload to your machine and execute.&lt;/p&gt;</description></item><item><title>Building my new blog: Part 2</title><link>https://pgrunm.github.io/posts/building_blog_part2/</link><pubDate>Thu, 13 Feb 2020 14:31:31 +0100</pubDate><guid>https://pgrunm.github.io/posts/building_blog_part2/</guid><description>&lt;p&gt;In the last post I wrote about my considerations about what software to use for my blog, where to host it and how to set it up. This post contains some more techinical details like the git structure and the deployment process. So then let&amp;rsquo;s dive in.&lt;/p&gt;
+&lt;h2 id="the-git-structure"&gt;
+ The git structure
+ &lt;a class="heading-link" href="#the-git-structure"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;The hugo projects mentions in their documentation to use &lt;a href="https://gohugo.io/getting-started/quick-start/" class="external-link" target="_blank" rel="noopener"&gt;a git submodule&lt;/a&gt; for the theme. &lt;a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules" class="external-link" target="_blank" rel="noopener"&gt;Git&lt;/a&gt; explains that you can use this feature to integrate another project into your repository while still getting the latest commits from the other repo.&lt;/p&gt;</description></item><item><title>Building my new blog: Part 1</title><link>https://pgrunm.github.io/posts/building_blog_part1/</link><pubDate>Sat, 01 Feb 2020 14:31:31 +0100</pubDate><guid>https://pgrunm.github.io/posts/building_blog_part1/</guid><description>&lt;p&gt;I wanted to create a blog for a long time already, but because of university I had not much spare time. Finally I found some time to create my blog and this post will contain some background information about the software I&amp;rsquo;m using, where it&amp;rsquo;s hosted etc. Enjoy my first post!&lt;/p&gt;
+&lt;h2 id="what-to-use"&gt;
+ What to use
+ &lt;a class="heading-link" href="#what-to-use"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;The first question I asked myself was: What software I&amp;rsquo;m going to use for my blog? Maybe Wordpress or Joomla for example? Lately you can read a lot about critcal vulnerabilities in Wordpress or rarely maintained plugins. So this wasn&amp;rsquo;t an option for me, because security is a must have.&lt;/p&gt;</description></item></channel></rss>

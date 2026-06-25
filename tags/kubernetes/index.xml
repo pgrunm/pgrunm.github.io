@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kubernetes on System Engineering Blog</title><link>https://pgrunm.github.io/tags/kubernetes/</link><description>Recent content in Kubernetes on System Engineering Blog</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 15 Jul 2023 10:40:30 +0200</lastBuildDate><atom:link href="https://pgrunm.github.io/tags/kubernetes/index.xml" rel="self" type="application/rss+xml"/><item><title>Automating Kubernetes operating system updates with Kured, kOps and Flatcar</title><link>https://pgrunm.github.io/posts/kured/</link><pubDate>Sat, 15 Jul 2023 10:40:30 +0200</pubDate><guid>https://pgrunm.github.io/posts/kured/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello everyone, it&amp;rsquo;s time for a new post.&lt;/p&gt;
+&lt;p&gt;As you may know, operating system updates are a crucial part of IT security. In cloud environments you may have up to thousands of virtual servers, where no engineer can manually update these servers. So what to do, if you want to automate these operating system updates?&lt;/p&gt;
+&lt;h2 id="the-solution"&gt;
+ The solution
+ &lt;a class="heading-link" href="#the-solution"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Fortunately, there is a great solution to this problem. This solution is called &lt;a href="https://kured.dev/" class="external-link" target="_blank" rel="noopener"&gt;Kured&lt;/a&gt;. Kured enables you as a Kubernetes administrator to automate operating system updates. You can choose between different settings like&lt;/p&gt;</description></item><item><title>Kubernetes templating with Carvel ytt</title><link>https://pgrunm.github.io/posts/ytt/</link><pubDate>Sun, 25 Jun 2023 13:35:33 +0200</pubDate><guid>https://pgrunm.github.io/posts/ytt/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello again, this is another blog post about a great CNCF tool. If you&amp;rsquo;ve ever worked with Kubernetes manifests, you probably know that editing or creating them by hand can be very painful.&lt;/p&gt;
+&lt;p&gt;On the other side, you as a developer or engineer don&amp;rsquo;t want to edit a lot in these manifests. It is usually better to edit the necessary parts and leave the rest as it was before.&lt;/p&gt;</description></item></channel></rss>

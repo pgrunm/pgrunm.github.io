@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Apache on System Engineering Blog</title><link>https://pgrunm.github.io/tags/apache/</link><description>Recent content in Apache on System Engineering Blog</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Tue, 07 Jul 2020 18:45:07 +0100</lastBuildDate><atom:link href="https://pgrunm.github.io/tags/apache/index.xml" rel="self" type="application/rss+xml"/><item><title>Establishing proxy support for an application without proxy support</title><link>https://pgrunm.github.io/posts/nginx_forward_proxy/</link><pubDate>Tue, 07 Jul 2020 18:45:07 +0100</pubDate><guid>https://pgrunm.github.io/posts/nginx_forward_proxy/</guid><description>&lt;h2 id="introduction"&gt;
+ Introduction
+ &lt;a class="heading-link" href="#introduction"&gt;
+ &lt;i class="fa-solid fa-link" aria-hidden="true" title="Link to heading"&gt;&lt;/i&gt;
+ &lt;span class="sr-only"&gt;Link to heading&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Hello again dear reader :-)! Some time passed since my last blog post, because I have been busy with University, but now since exams are done, I have some more time for creating the latest post. Recently I stumbled upon an application that needed internet access but unfortunately didn&amp;rsquo;t support a proxy server yet. At that point of the project we had to find a way to allow this application to communicate directly with the internet, but without having a direct connection to the internet. This is the topic of this post.&lt;/p&gt;</description></item></channel></rss>
